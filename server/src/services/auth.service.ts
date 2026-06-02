@@ -6,7 +6,8 @@ import { generateTokenPair, verifyRefreshToken } from '../utils/jwt.utils';
 import { ROLES } from '../utils/constants';
 import { env } from '../config/env';
 import { logger } from '../config/logger';
-import type { RegisterInput, LoginInput } from '../validations/auth.validation';
+import type { RegisterInput, LoginInput, GoogleLoginInput } from '../validations/auth.validation';
+import { OAuth2Client } from 'google-auth-library';
 
 // ── Email transporter ────────────────────────────────────────
 const transporter = nodemailer.createTransport({
@@ -72,6 +73,64 @@ class AuthService {
 
     logger.info(`User logged in: ${user.email}`);
     return { user: user.toSafeObject(), tokens };
+  }
+
+  // ── Google Login ───────────────────────────────────────────
+  async loginWithGoogle(input: GoogleLoginInput) {
+    const client = new OAuth2Client(env.google.clientId);
+    
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: input.credential,
+        audience: env.google.clientId,
+      });
+      
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email) {
+        throw ApiError.unauthorized('Invalid Google token');
+      }
+      
+      const { sub: googleId, email, name, picture: avatar } = payload;
+      
+      // Check if user exists by googleId or email
+      let user = await authRepository.findByEmail(email, true);
+      
+      if (user) {
+        // Link google account if not linked
+        if (!user.googleId) {
+          await authRepository.update({ _id: user._id }, { googleId, avatar: user.avatar || avatar });
+        }
+        
+        if (!user.isActive) {
+          throw ApiError.forbidden('Your account has been deactivated. Contact support.');
+        }
+      } else {
+        // Create new user (password is optional now)
+        user = await authRepository.create({
+          name: name || 'Google User',
+          email: email.toLowerCase(),
+          googleId,
+          avatar,
+          isVerified: true,
+          role: ROLES.CUSTOMER,
+        } as any); // using 'as any' since password is required in the DB schema implicitly without googleId, but mongoose will handle our custom logic
+      }
+
+      const tokens = generateTokenPair({
+        userId: user._id.toString(),
+        role: user.role,
+        email: user.email,
+      });
+
+      await authRepository.addRefreshToken(user._id.toString(), tokens.refreshToken);
+      await authRepository.updateLastLogin(user._id.toString());
+
+      logger.info(`User logged in via Google: ${user.email}`);
+      return { user: user.toSafeObject(), tokens };
+    } catch (error: any) {
+      logger.error(`Google Auth Error: ${error.message}`);
+      throw ApiError.unauthorized('Google authentication failed');
+    }
   }
 
   // ── Logout ─────────────────────────────────────────────────

@@ -95,6 +95,40 @@ class AuthController {
 
   /**
    * @swagger
+   * /auth/google:
+   *   post:
+   *     tags: [Auth]
+   *     summary: Login with Google
+   *     security: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [credential]
+   *             properties:
+   *               credential: { type: string }
+   *     responses:
+   *       200:
+   *         description: Login successful
+   *       401:
+   *         description: Invalid Google token
+   */
+  googleLogin = asyncHandler(async (req: Request, res: Response) => {
+    const result = await authService.loginWithGoogle(req.body);
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, result.tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
+
+    res.json(
+      ApiResponse.ok('Google login successful', {
+        user: result.user,
+        accessToken: result.tokens.accessToken,
+      }),
+    );
+  });
+
+  /**
+   * @swagger
    * /auth/logout:
    *   post:
    *     tags: [Auth]

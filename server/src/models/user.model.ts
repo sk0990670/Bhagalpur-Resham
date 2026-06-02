@@ -78,7 +78,8 @@ export interface IAddress {
 export interface IUser extends Document {
   name: string;
   email: string;
-  password: string;
+  password?: string; // Optional for OAuth users
+  googleId?: string;
   role: Role;
   avatar?: string;
   phone?: string;
@@ -128,9 +129,16 @@ const userSchema = new Schema<IUser>(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows multiple users without a googleId
+    },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: function(this: any): boolean {
+        return !this.googleId;
+      },
       minlength: [8, 'Password must be at least 8 characters'],
       select: false, // Never returned in queries by default
     },
@@ -163,7 +171,7 @@ userSchema.index({ isActive: 1 });
 
 // ── Pre-save hook: Hash password ─────────────────────────────
 userSchema.pre('save', async function () {
-  if (!this.isModified('password')) return;
+  if (!this.isModified('password') || !this.password) return;
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });

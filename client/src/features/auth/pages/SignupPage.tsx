@@ -1,9 +1,28 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+import { authService } from '../../../shared/services/auth.service';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../authSlice';
 import bhagalpurReshamBrandLogoAsset from '../../../assets/bhagalpur_resham_brand_logo.png';
 
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      if (credentialResponse.credential) {
+        const data = await authService.googleLogin({ credential: credentialResponse.credential });
+        dispatch(setCredentials({ user: data.data.user, token: data.data.accessToken }));
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Google signup failed', error);
+      alert('Google authentication failed. Please try again.');
+    }
+  };
   return (
     <main className="flex-grow flex items-center justify-center py-section-gap px-margin-mobile md:px-margin-desktop bg-silk-texture relative">
       {/* Abstract Lotus Motif Background Element */}
@@ -70,6 +89,27 @@ const Signup = () => {
             </button>
           </div>
         </form>
+
+        <div className="flex items-center justify-center gap-4 py-6 opacity-60">
+          <div className="flex-1 h-px bg-outline-variant"></div>
+          <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">or</span>
+          <div className="flex-1 h-px bg-outline-variant"></div>
+        </div>
+        
+        <div className="flex justify-center w-full">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              console.error('Google Signup Failed');
+              alert('Google signup failed.');
+            }}
+            theme="outline"
+            size="large"
+            text="signup_with"
+            shape="rectangular"
+            width="100%"
+          />
+        </div>
 
         {/* Login Link */}
         <div className="mt-8 text-center">
