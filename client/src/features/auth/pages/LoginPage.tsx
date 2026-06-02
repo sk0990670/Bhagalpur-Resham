@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { authService } from '../../../shared/services/auth.service';
 import { useDispatch } from 'react-redux';
@@ -8,6 +8,27 @@ import { setCredentials } from '../authSlice';
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+
+  const handleDummyLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email && password) {
+      const dummyCustomer = {
+        id: 'cust_123',
+        name: 'Patron User',
+        email: email,
+        role: 'customer'
+      };
+      dispatch(setCredentials({ user: dummyCustomer, token: 'dummy_customer_token' }));
+      
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    } else {
+      alert('Please enter an email and password to continue.');
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
@@ -48,10 +69,18 @@ const Login = () => {
           <h1 className="font-headline-xl text-headline-xl text-primary mb-2">Patron Login</h1>
           <p className="font-body-md text-body-md text-on-surface-variant mb-10">Welcome back to the heritage of silk.</p>
           
-          <form className="space-y-8 text-left">
+          <form className="space-y-8 text-left" onSubmit={handleDummyLogin}>
             <div className="relative">
               <label className="block font-label-caps text-label-caps text-on-surface-variant mb-2 uppercase" htmlFor="email">Email Address</label>
-              <input className="w-full bg-transparent border-0 border-b border-primary focus:border-b-2 focus:ring-0 px-0 py-2 text-on-surface font-body-md placeholder:text-outline outline-none" id="email" name="email" placeholder="Enter your email" type="email" />
+              <input 
+                className="w-full bg-transparent border-0 border-b border-primary focus:border-b-2 focus:ring-0 px-0 py-2 text-on-surface font-body-md placeholder:text-outline outline-none" 
+                id="email" 
+                name="email" 
+                placeholder="Enter your email" 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             
             <div className="relative">
@@ -59,13 +88,24 @@ const Login = () => {
                 <label className="block font-label-caps text-label-caps text-on-surface-variant uppercase" htmlFor="password">Password</label>
                 <Link className="font-label-caps text-label-caps text-primary hover:text-primary-container transition-colors" to="/forgot-password">Forgot Password?</Link>
               </div>
-              <input className="w-full bg-transparent border-0 border-b border-primary focus:border-b-2 focus:ring-0 px-0 py-2 text-on-surface font-body-md placeholder:text-outline outline-none" id="password" name="password" placeholder="Enter your password" type="password" />
+              <input 
+                className="w-full bg-transparent border-0 border-b border-primary focus:border-b-2 focus:ring-0 px-0 py-2 text-on-surface font-body-md placeholder:text-outline outline-none" 
+                id="password" 
+                name="password" 
+                placeholder="Enter your password" 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             
             <div className="pt-4 space-y-4">
-              <Link className="w-full bg-primary-container hover:bg-tertiary text-on-primary font-label-caps text-label-caps py-4 rounded transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-widest shadow-md hover:shadow-lg cursor-pointer" to="/dashboard">
+              <button 
+                type="submit" 
+                className="w-full bg-primary-container hover:bg-tertiary text-on-primary font-label-caps text-label-caps py-4 rounded transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-widest shadow-md hover:shadow-lg cursor-pointer"
+              >
                 Login <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_right_alt</span>
-              </Link>
+              </button>
               
               <div className="flex items-center justify-center gap-4 py-2 opacity-60">
                 <div className="flex-1 h-px bg-outline-variant"></div>

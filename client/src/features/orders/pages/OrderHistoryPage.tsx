@@ -25,24 +25,21 @@ const OrderHistory = () => {
             <span className="material-symbols-outlined">potted_plant</span>
             <span className="font-body-md text-body-md">Order History</span>
           </Link>
-          <Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" to="/wishlist">
-            <span className="material-symbols-outlined">favorite</span>
-            <span className="font-body-md text-body-md">Saved Masterpieces</span>
-          </Link>
-          <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" href="#">
+
+          <Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" to="/artisan-credits">
             <span className="material-symbols-outlined">auto_awesome</span>
             <span className="font-body-md text-body-md">Artisan Credits</span>
-          </a>
+          </Link>
           <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" href="#">
             <span className="material-symbols-outlined">settings</span>
             <span className="font-body-md text-body-md">Settings</span>
           </a>
         </nav>
         <div className="mt-auto px-4 flex flex-col gap-2 border-t border-outline-variant/20 pt-4">
-          <a className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors" href="#">
+          <Link className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors" to="/support">
             <span className="material-symbols-outlined">help</span>
             <span className="font-body-md text-[14px]">Support</span>
-          </a>
+          </Link>
           <button className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors w-full text-left cursor-pointer">
             <span className="material-symbols-outlined">logout</span>
             <span className="font-body-md text-[14px]">Log Out</span>

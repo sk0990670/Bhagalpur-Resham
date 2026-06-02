@@ -8,9 +8,14 @@ import bhagalpurReshamBrandLogoAsset from '../../assets/bhagalpur_resham_brand_l
 const Layout = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   
-  const accountLink = isAuthenticated
-    ? user?.role === 'admin' || user?.role === 'superadmin' ? '/admin' : '/dashboard'
-    : '/login';
+  let accountLink = '/login';
+  if (isAuthenticated) {
+    if (user?.role === 'admin' || user?.role === 'superadmin') {
+      accountLink = '/admin/dashboard';
+    } else {
+      accountLink = '/dashboard';
+    }
+  }
 
   return (
     <div className="bg-surface text-on-surface font-body-md antialiased pt-[88px] min-h-screen flex flex-col">
@@ -72,9 +77,25 @@ const Layout = () => {
             <Link aria-label="Shopping Bag" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/cart">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>shopping_bag</span>
             </Link>
-            <Link aria-label="Account" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95 hidden sm:block" to={accountLink}>
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>person</span>
-            </Link>
+            {isAuthenticated ? (
+              <Link aria-label="Account" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95 hidden sm:block" to={accountLink}>
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>person</span>
+              </Link>
+            ) : (
+              <div className="relative group hidden sm:block">
+                <button aria-label="Account" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95">
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>person</span>
+                </button>
+                <div className="absolute right-0 mt-2 w-48 bg-surface-container-lowest rounded-md ambient-shadow py-1 border border-outline-variant/30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+                  <Link to="/login" className="block px-4 py-3 font-body-md text-body-md text-on-surface hover:bg-primary/5 hover:text-primary transition-colors">
+                    Login as Patron
+                  </Link>
+                  <Link to="/admin/login" className="block px-4 py-3 font-body-md text-body-md text-on-surface hover:bg-primary/5 hover:text-primary transition-colors border-t border-outline-variant/20">
+                    Login as Admin
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -127,10 +148,10 @@ const Layout = () => {
         <div className="border-t border-outline-variant/20 px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <span className="font-body-md text-body-md text-on-surface-variant/70 text-sm">© 2024 Bhagalpur Resham. Hand-woven in Bihar, India.</span>
           <div className="flex gap-4">
-            <a aria-label="Instagram" className="text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+            <a aria-label="Instagram" className="text-on-surface-variant/70 hover:text-primary transition-colors" href="https://www.instagram.com/bhagalpurresham" target="_blank" rel="noopener noreferrer">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>photo_camera</span>
             </a>
-            <a aria-label="Facebook" className="text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+            <a aria-label="Facebook" className="text-on-surface-variant/70 hover:text-primary transition-colors" href="https://www.facebook.com/profile.php?id=61590607709758" target="_blank" rel="noopener noreferrer">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>public</span>
             </a>
           </div>

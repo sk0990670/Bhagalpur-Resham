@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../../auth/authSlice';
 import bhagalpurReshamBrandLogoAsset from '../../../assets/bhagalpur_resham_brand_logo.png';
 
 
@@ -7,12 +9,23 @@ const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
 
   const handleLogin = (e) => {
     e.preventDefault();
     // Simulate login for now
     if (email === 'admin@bhagalpurresham.com' && password === 'admin') {
-      navigate('/admin/dashboard');
+      const dummyAdmin = {
+        id: 'admin_123',
+        name: 'System Admin',
+        email: 'admin@bhagalpurresham.com',
+        role: 'admin'
+      };
+      dispatch(setCredentials({ user: dummyAdmin, token: 'dummy_admin_token' }));
+      
+      const from = location.state?.from?.pathname || '/admin/dashboard';
+      navigate(from, { replace: true });
     } else {
       alert('Invalid credentials. Use admin@bhagalpurresham.com / admin');
     }

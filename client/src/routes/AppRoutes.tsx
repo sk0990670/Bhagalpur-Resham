@@ -1,14 +1,16 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
 import MainLayout from '../shared/layouts/MainLayout';
+import ProtectedRoute from '../shared/components/ProtectedRoute';
 
 // Auth & User
 import LoginPage from '../features/auth/pages/LoginPage';
 import SignupPage from '../features/auth/pages/SignupPage';
 import ForgotPasswordPage from '../features/auth/pages/ForgotPasswordPage';
 import CustomerDashboardPage from '../features/auth/pages/CustomerDashboardPage';
+import ArtisanCreditsPage from '../features/auth/pages/ArtisanCreditsPage';
 
 // Products
 import HomePage from '../features/products/pages/HomePage';
@@ -24,6 +26,9 @@ import CheckoutPage from '../features/checkout/pages/CheckoutPage';
 import OrderConfirmationPage from '../features/orders/pages/OrderConfirmationPage';
 import OrderHistoryPage from '../features/orders/pages/OrderHistoryPage';
 import OrderTrackingPage from '../features/orders/pages/OrderTrackingPage';
+
+// Support
+import CustomerSupportPage from '../features/support/pages/CustomerSupportPage';
 
 // Wishlist
 import WishlistPage from '../features/wishlist/pages/WishlistPage';
@@ -60,15 +65,25 @@ const AppRoutes = () => {
         <Route path="product/:id" element={<ProductDetailPage />} />
         <Route path="artisans" element={<ArtisanStoryPage />} />
         <Route path="cart" element={<ShoppingBagPage />} />
-        <Route path="checkout" element={<CheckoutPage />} />
-        <Route path="order-confirmation" element={<OrderConfirmationPage />} />
+        
+        {/* Protected Customer Routes (Wrapped) */}
+        <Route element={<ProtectedRoute allowedRoles={['customer']} />}>
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="order-confirmation" element={<OrderConfirmationPage />} />
+          <Route path="dashboard" element={<CustomerDashboardPage />} />
+          <Route path="order-history" element={<OrderHistoryPage />} />
+          <Route path="wishlist" element={<WishlistPage />} />
+          <Route path="order-tracking" element={<OrderTrackingPage />} />
+          <Route path="support" element={<CustomerSupportPage />} />
+          <Route path="artisan-credits" element={<ArtisanCreditsPage />} />
+        </Route>
+
+        {/* Public Auth Routes */}
         <Route path="login" element={<LoginPage />} />
         <Route path="signup" element={<SignupPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="dashboard" element={<CustomerDashboardPage />} />
-        <Route path="order-history" element={<OrderHistoryPage />} />
-        <Route path="wishlist" element={<WishlistPage />} />
-        <Route path="order-tracking" element={<OrderTrackingPage />} />
+        
+        {/* Public CMS Routes */}
         <Route path="contact" element={<ContactUsPage />} />
         <Route path="faq" element={<FAQPage />} />
         <Route path="returns" element={<ReturnPolicyPage />} />
@@ -81,16 +96,21 @@ const AppRoutes = () => {
       </Route>
       
       {/* Admin Routes (Without Main Layout for now until AdminLayout is extracted) */}
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/admin/dashboard" element={<DashboardPage />} />
-      <Route path="/admin/inventory" element={<ProductManagementPage />} />
-      <Route path="/admin/inventory/new" element={<SareeCreationPage />} />
-      <Route path="/admin/orders" element={<OrdersManagementPage />} />
-      <Route path="/admin/customers" element={<CustomerManagementPage />} />
-      <Route path="/admin/coupons" element={<CouponManagementPage />} />
-      <Route path="/admin/reviews" element={<ReviewModerationPage />} />
-      <Route path="/admin/analytics" element={<AnalyticsPage />} />
-      <Route path="/admin/content" element={<ContentManagementPage />} />
+      
+      {/* Protected Admin Routes */}
+      <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin']} />}>
+        <Route path="/admin/dashboard" element={<DashboardPage />} />
+        <Route path="/admin/inventory" element={<ProductManagementPage />} />
+        <Route path="/admin/inventory/new" element={<SareeCreationPage />} />
+        <Route path="/admin/orders" element={<OrdersManagementPage />} />
+        <Route path="/admin/customers" element={<CustomerManagementPage />} />
+        <Route path="/admin/coupons" element={<CouponManagementPage />} />
+        <Route path="/admin/reviews" element={<ReviewModerationPage />} />
+        <Route path="/admin/analytics" element={<AnalyticsPage />} />
+        <Route path="/admin/content" element={<ContentManagementPage />} />
+      </Route>
     </Routes>
   );
 };
