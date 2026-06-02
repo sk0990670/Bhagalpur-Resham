@@ -98,9 +98,9 @@ const Layout = () => {
           <div className="col-span-1">
             <h3 className="font-label-caps text-label-caps text-on-surface mb-6">Explore</h3>
             <ul className="flex flex-col gap-4">
-              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/">The History of Tussar</Link></li>
-              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/">Mithila Artistry</Link></li>
-              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/">Silk Mark Certification</Link></li>
+              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/history-of-tussar">The History of Tussar</Link></li>
+              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/mithila-artistry">Mithila Artistry</Link></li>
+              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/silk-mark">Silk Mark Certification</Link></li>
             </ul>
           </div>
           <div className="col-span-1">

@@ -23,6 +23,9 @@ import ShippingPolicy from './pages/ShippingPolicy';
 import ProductSearch from './pages/ProductSearch';
 import AdminLogin from './pages/AdminLogin';
 import Heritage from './pages/Heritage';
+import HistoryOfTussar from './pages/HistoryOfTussar';
+import MithilaArtistry from './pages/MithilaArtistry';
+import SilkMark from './pages/SilkMark';
 
 function App() {
   const [showPreloader, setShowPreloader] = useState(true);
@@ -53,6 +56,9 @@ function App() {
             <Route path="shipping" element={<ShippingPolicy />} />
             <Route path="search" element={<ProductSearch />} />
             <Route path="heritage" element={<Heritage />} />
+            <Route path="history-of-tussar" element={<HistoryOfTussar />} />
+            <Route path="mithila-artistry" element={<MithilaArtistry />} />
+            <Route path="silk-mark" element={<SilkMark />} />
           </Route>
           
           {/* Admin Routes (Without Main Layout) */}
