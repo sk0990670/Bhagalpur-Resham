@@ -1,7 +1,23 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../authSlice';
+import { authService } from '../../../shared/services/auth.service';
 
 const CustomerDashboard = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (e) {
+      console.error('Logout failed:', e);
+    } finally {
+      dispatch(logout());
+      navigate('/login');
+    }
+  };
   return (
     <div className="flex flex-1 w-full mx-auto relative">
       {/* SideNavBar */}
@@ -43,7 +59,7 @@ const CustomerDashboard = () => {
             <span className="material-symbols-outlined">help</span>
             <span className="font-body-md text-[14px]">Support</span>
           </a>
-          <button className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors w-full text-left">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors w-full text-left cursor-pointer">
             <span className="material-symbols-outlined">logout</span>
             <span className="font-body-md text-[14px]">Log Out</span>
           </button>

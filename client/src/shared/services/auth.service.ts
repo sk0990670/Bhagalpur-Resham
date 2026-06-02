@@ -16,5 +16,9 @@ export const authService = {
   googleLogin: async (data: { credential: string }) => {
     const response = await api.post('/auth/google', data);
     return response.data;
+  },
+  logout: async () => {
+    const response = await api.post('/auth/logout');
+    return response.data;
   }
 };

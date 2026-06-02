@@ -1,9 +1,17 @@
 import React from 'react';
 import { Outlet, Link, NavLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../app/store';
 import bhagalpurReshamBrandLogoAsset from '../../assets/bhagalpur_resham_brand_logo.png';
 
 
 const Layout = () => {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  
+  const accountLink = isAuthenticated
+    ? user?.role === 'admin' || user?.role === 'superadmin' ? '/admin' : '/dashboard'
+    : '/login';
+
   return (
     <div className="bg-surface text-on-surface font-body-md antialiased pt-[88px] min-h-screen flex flex-col">
       {/* TopNavBar */}
@@ -64,7 +72,7 @@ const Layout = () => {
             <Link aria-label="Shopping Bag" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/cart">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>shopping_bag</span>
             </Link>
-            <Link aria-label="Account" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95 hidden sm:block" to="/login">
+            <Link aria-label="Account" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95 hidden sm:block" to={accountLink}>
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>person</span>
             </Link>
           </div>
