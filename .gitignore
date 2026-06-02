@@ -1,5 +1,36 @@
-# Logs
-logs
+# ══════════════════════════════════════════════════════════════
+# Bhagalpur Resham – Root .gitignore
+# ══════════════════════════════════════════════════════════════
+
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ── Build outputs ─────────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# ── Environment variables (NEVER commit these) ────────────────
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+*.env
+
+# ── Logs ──────────────────────────────────────────────────────
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,26 +38,71 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node modules
-node_modules/
-dist/
-dist-ssr/
-*.local
+# ── Runtime / OS ──────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
-# Editor directories and files
+# ── IDE & Editors ─────────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+!.vscode/settings.json        # Keep shared settings (no secrets in there)
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+.project
+.classpath
+.settings/
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# ── TypeScript ────────────────────────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── Testing ───────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+jest-results/
+
+# ── Docker ────────────────────────────────────────────────────
+# Keep Dockerfiles but ignore local override files with secrets
+docker-compose.override.yml
+.docker/
+
+# ── SSL Certificates ──────────────────────────────────────────
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+ssl/
+
+# ── Uploads / Media (use Cloudinary instead) ──────────────────
+uploads/
+public/uploads/
+server/uploads/
+
+# ── Misc ──────────────────────────────────────────────────────
+*.local
+.cache/
+.temp/
+tmp/
+temp/
+
+# ── GitHub Actions (Temporarily ignored) ──────────────────────
+.github/workflows/ci-cd.yml
+
+# ── API Testing Files ─────────────────────────────────────────
+Bhagalpur-Resham.postman_collection.json
+api.http

@@ -1,0 +1,52 @@
+import { Request, Response } from 'express';
+import { productService } from '../services/product.service';
+import { asyncHandler } from '../utils/asyncHandler';
+import { ApiResponse } from '../utils/ApiResponse';
+
+class ProductController {
+  listProducts = asyncHandler(async (req: Request, res: Response) => {
+    const result = await productService.listProducts(req);
+    res.json(ApiResponse.ok('Products fetched', result.data, result.meta));
+  });
+
+  getFeatured = asyncHandler(async (_req: Request, res: Response) => {
+    const products = await productService.getFeaturedProducts();
+    res.json(ApiResponse.ok('Featured products fetched', products));
+  });
+
+  getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
+    const product = await productService.getProductBySlug(req.params.slug as string);
+    res.json(ApiResponse.ok('Product fetched', product));
+  });
+
+  getProductById = asyncHandler(async (req: Request, res: Response) => {
+    const product = await productService.getProductById(req.params.id as string);
+    res.json(ApiResponse.ok('Product fetched', product));
+  });
+
+  createProduct = asyncHandler(async (req: Request, res: Response) => {
+    const product = await productService.createProduct(req.body);
+    res.status(201).json(ApiResponse.created('Product created', product));
+  });
+
+  updateProduct = asyncHandler(async (req: Request, res: Response) => {
+    const product = await productService.updateProduct(req.params.id as string, req.body);
+    res.json(ApiResponse.ok('Product updated', product));
+  });
+
+  deleteProduct = asyncHandler(async (req: Request, res: Response) => {
+    await productService.deleteProduct(req.params.id as string);
+    res.json(ApiResponse.ok('Product deleted'));
+  });
+
+  addImage = asyncHandler(async (req: Request, res: Response) => {
+    const product = await productService.addImage(req.params.id as string, req.body);
+    res.json(ApiResponse.ok('Image added', product));
+  });
+
+  removeImage = asyncHandler(async (req: Request, res: Response) => {
+    const product = await productService.removeImage(req.params.id as string, req.params.publicId as string);
+    res.json(ApiResponse.ok('Image removed', product));
+  });
+}
+export const productController = new ProductController();

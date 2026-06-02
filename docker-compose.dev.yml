@@ -1,0 +1,99 @@
+## ══════════════════════════════════════════════════════════════
+## Development Override – docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+## ══════════════════════════════════════════════════════════════
+
+name: bhagalpur-resham
+
+services:
+
+  # ── Backend – hot reload in dev ───────────────────────────
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: development           # Use dev stage with nodemon
+    container_name: br-backend-dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./server/src:/app/src       # Mount source for hot reload
+      - ./server/.env:/app/.env:ro
+      - /app/node_modules           # Exclude node_modules from mount
+    ports:
+      - "5000:5000"                 # Expose directly (no nginx in dev)
+      - "9229:9229"                 # Node.js debugger port
+
+  # ── Frontend – Vite dev server ───────────────────────────
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev    # Use dev dockerfile
+    container_name: br-frontend-dev
+    environment:
+      VITE_API_BASE_URL: http://localhost:5000/api
+    volumes:
+      - ./client/src:/app/src
+      - ./client/public:/app/public
+      - /app/node_modules
+    ports:
+      - "5173:5173"                 # Vite HMR port
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+  # ── MongoDB – expose port for local GUI tools ────────────
+  mongodb:
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: dev_password
+    command:
+      - mongod
+      - --auth
+      # No resource limits in dev
+
+  # ── Redis – expose port ───────────────────────────────────
+  redis:
+    ports:
+      - "6379:6379"
+    command:
+      - redis-server
+      - --requirepass
+      - dev_redis_password
+
+  # ── Mongo Express – DB GUI ────────────────────────────────
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: br-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: "27017"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: dev_password
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: express123
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ── Redis Commander – Redis GUI ───────────────────────────
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: br-redis-commander
+    ports:
+      - "8082:8081"
+    environment:
+      REDIS_HOSTS: "local:redis:6379:0:dev_redis_password"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ── Nginx – disabled in dev (direct access) ───────────────
+  nginx:
+    profiles: ["nginx-dev"]    # Only start nginx if explicitly requested

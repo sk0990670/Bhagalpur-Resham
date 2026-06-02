@@ -1,24 +1,22 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# ══════════════════════════════════════════════════════════════
+# Client .gitignore (inherits from root)
+# ══════════════════════════════════════════════════════════════
 
-node_modules
-dist
-dist-ssr
-*.local
+# ── Secrets ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example           # Keep the example template
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# ── Build ─────────────────────────────────────────────────────
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+
+# ── Vite cache ────────────────────────────────────────────────
+.vite/
+
+# ── Test coverage ─────────────────────────────────────────────
+coverage/

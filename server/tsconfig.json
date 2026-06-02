@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+
+  "compilerOptions": {
+    // ── Target & Module ──────────────────────────────────────
+    "target": "ES2020",
+    "module": "CommonJS",
+    // node = classic Node.js resolution; ignoreDeprecations silences the TS6 warning
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "lib": ["ES2020"],
+
+    // ── Output ───────────────────────────────────────────────
+    "outDir": "./dist",
+    "rootDir": "./",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    // ── Strict ───────────────────────────────────────────────
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+
+    // ── Decorators ───────────────────────────────────────────
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // ── Path Aliases ─────────────────────────────────────────
+    "baseUrl": ".",
+    "paths": {
+      "@config/*":       ["src/config/*"],
+      "@models/*":       ["src/models/*"],
+      "@repositories/*": ["src/repositories/*"],
+      "@services/*":     ["src/services/*"],
+      "@controllers/*":  ["src/controllers/*"],
+      "@routes/*":       ["src/routes/*"],
+      "@middleware/*":   ["src/middleware/*"],
+      "@validations/*":  ["src/validations/*"],
+      "@utils/*":        ["src/utils/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node", "jest"]
+  },
+  "ts-node": {
+    "files": true
+  },
+  "include": ["src/**/*", "tests/**/*", "server.ts"],
+  "exclude": ["node_modules", "dist"]
+}
