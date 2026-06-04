@@ -1,15 +1,103 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { authService } from '../../../shared/services/auth.service';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../authSlice';
 import bhagalpurReshamBrandLogoAsset from '../../../assets/bhagalpur_resham_brand_logo.png';
-
+import { validateEmail, validateMobile, validateFullName, validatePassword } from '../../../shared/utils/validation';
 
 const Signup = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const [formErrors, setFormErrors] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const validateField = (field: string, value: string) => {
+    let error = '';
+    switch (field) {
+      case 'email':
+        error = validateEmail(value);
+        break;
+      case 'phone':
+        error = validateMobile(value);
+        break;
+      case 'fullName':
+        error = validateFullName(value);
+        break;
+      case 'password':
+        error = validatePassword(value);
+        break;
+      case 'confirmPassword':
+        if (value !== formData.password) {
+          error = 'Passwords do not match.';
+        }
+        break;
+      default:
+        break;
+    }
+    setFormErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (formErrors[name as keyof typeof formErrors]) {
+      validateField(name, value);
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    validateField(name, value);
+  };
+
+  const isFormValid = () => {
+    const errors = {
+      fullName: validateFullName(formData.fullName),
+      email: validateEmail(formData.email),
+      phone: validateMobile(formData.phone),
+      password: validatePassword(formData.password),
+      confirmPassword: formData.password !== formData.confirmPassword ? 'Passwords do not match.' : ''
+    };
+    
+    setFormErrors(errors);
+    return Object.values(errors).every(err => err === '');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid()) return;
+
+    try {
+      const data = await authService.register({
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password
+      });
+      dispatch(setCredentials({ user: data.data.user, token: data.data.accessToken }));
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Registration failed', error);
+      alert('Registration failed. Please check the details and try again.');
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
@@ -23,6 +111,21 @@ const Signup = () => {
       alert('Google authentication failed. Please try again.');
     }
   };
+
+  const getInputStyle = (error: string, value: string) => {
+    let base = "input-underline font-body-md text-body-md text-on-surface placeholder:text-outline-variant transition-colors w-full";
+    if (error) {
+      return `${base} border-b-red-500 focus:border-b-red-500 text-red-500`;
+    }
+    if (value && !error) {
+      return `${base} border-b-green-500 focus:border-b-green-500`;
+    }
+    return base;
+  };
+
+  const isFormHasErrors = Object.values(formErrors).some(err => err !== '');
+  const isFormIncomplete = !formData.fullName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword;
+
   return (
     <main className="flex-grow flex items-center justify-center py-section-gap px-margin-mobile md:px-margin-desktop bg-silk-texture relative">
       {/* Abstract Lotus Motif Background Element */}
@@ -50,40 +153,45 @@ const Signup = () => {
         </div>
 
         {/* Registration Form */}
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {/* Full Name */}
           <div className="flex flex-col">
             <label className="font-label-caps text-label-caps text-on-surface-variant mb-1" htmlFor="fullName">Full Name</label>
-            <input className="input-underline font-body-md text-body-md text-on-surface placeholder:text-outline-variant transition-colors" id="fullName" name="fullName" placeholder="Enter your full name" required type="text" />
+            <input value={formData.fullName} onChange={handleInputChange} onBlur={handleBlur} className={getInputStyle(formErrors.fullName, formData.fullName)} id="fullName" name="fullName" placeholder="Enter your full name" type="text" />
+            {formErrors.fullName && <span className="text-red-500 text-xs mt-1">{formErrors.fullName}</span>}
           </div>
           
           {/* Email Address */}
           <div className="flex flex-col">
             <label className="font-label-caps text-label-caps text-on-surface-variant mb-1" htmlFor="email">Email Address</label>
-            <input className="input-underline font-body-md text-body-md text-on-surface placeholder:text-outline-variant transition-colors" id="email" name="email" placeholder="Enter your email" required type="email" />
+            <input value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={getInputStyle(formErrors.email, formData.email)} id="email" name="email" placeholder="Enter your email" type="email" />
+            {formErrors.email && <span className="text-red-500 text-xs mt-1">{formErrors.email}</span>}
           </div>
           
           {/* Phone Number */}
           <div className="flex flex-col">
             <label className="font-label-caps text-label-caps text-on-surface-variant mb-1" htmlFor="phone">Phone Number</label>
-            <input className="input-underline font-body-md text-body-md text-on-surface placeholder:text-outline-variant transition-colors" id="phone" name="phone" placeholder="Enter your phone number" type="tel" />
+            <input value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={getInputStyle(formErrors.phone, formData.phone)} id="phone" name="phone" placeholder="Enter your phone number" type="tel" />
+            {formErrors.phone && <span className="text-red-500 text-xs mt-1">{formErrors.phone}</span>}
           </div>
           
           {/* Password */}
           <div className="flex flex-col">
             <label className="font-label-caps text-label-caps text-on-surface-variant mb-1" htmlFor="password">Password</label>
-            <input className="input-underline font-body-md text-body-md text-on-surface placeholder:text-outline-variant transition-colors" id="password" name="password" placeholder="Create a password" required type="password" />
+            <input value={formData.password} onChange={handleInputChange} onBlur={handleBlur} className={getInputStyle(formErrors.password, formData.password)} id="password" name="password" placeholder="Create a password" type="password" />
+            {formErrors.password && <span className="text-red-500 text-xs mt-1">{formErrors.password}</span>}
           </div>
           
           {/* Confirm Password */}
           <div className="flex flex-col">
             <label className="font-label-caps text-label-caps text-on-surface-variant mb-1" htmlFor="confirmPassword">Confirm Password</label>
-            <input className="input-underline font-body-md text-body-md text-on-surface placeholder:text-outline-variant transition-colors" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required type="password" />
+            <input value={formData.confirmPassword} onChange={handleInputChange} onBlur={handleBlur} className={getInputStyle(formErrors.confirmPassword, formData.confirmPassword)} id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" type="password" />
+            {formErrors.confirmPassword && <span className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</span>}
           </div>
           
           {/* Action Button */}
           <div className="pt-4">
-            <button className="w-full bg-primary-container text-secondary-container hover:bg-tertiary transition-colors duration-300 font-label-caps text-label-caps py-4 rounded-sm flex justify-center items-center gap-2 cursor-pointer" type="submit">
+            <button disabled={isFormHasErrors || isFormIncomplete} className="w-full bg-primary-container text-secondary-container hover:bg-tertiary transition-colors duration-300 font-label-caps text-label-caps py-4 rounded-sm flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
               <span>Sign Up</span>
               <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_forward</span>
             </button>

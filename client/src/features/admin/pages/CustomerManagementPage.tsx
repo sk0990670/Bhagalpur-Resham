@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import bhagalpurReshamBrandLogoAsset from '../../../assets/bhagalpur_resham_brand_logo.png';
+import AdminSidebar from '../../../shared/components/AdminSidebar';
 
 
 const AdminCustomerManagement = () => {
@@ -8,58 +7,7 @@ const AdminCustomerManagement = () => {
         <div className="bg-surface text-on-surface font-body-md text-body-md min-h-screen w-full overflow-hidden flex bg-pattern-madhubani">
             
 {/*  SideNavBar  */}
-<nav className="bg-surface-container-low border-r border-outline-variant h-full w-64 fixed left-0 top-0 flex flex-col py-8 px-4 gap-4 z-40">
-<div className="mb-8 px-4 flex flex-col items-center">
-<div className="w-16 h-16 rounded-full bg-surface-container-highest mb-4 overflow-hidden border border-outline-variant flex items-center justify-center">
-<img alt="Admin Avatar" className="w-full h-full object-cover" data-alt="Professional headshot of an administrator. Soft studio lighting. Elegant and approachable, conveying a sense of curated luxury and trust suitable for a premium heritage brand dashboard." src={bhagalpurReshamBrandLogoAsset}/>
-</div>
-<h2 className="font-headline-md text-[22px] leading-tight text-primary text-center font-bold">Bhagalpur Resham Admin</h2>
-<p className="font-body-md text-body-md text-on-surface-variant text-sm mt-1">Luxury Silk Management</p>
-</div>
-<div className="flex flex-col gap-2 flex-grow overflow-y-auto">
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/dashboard">
-<span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>dashboard</span>
-<span className="">Dashboard</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/inventory">
-<span className="material-symbols-outlined">inventory_2</span>
-<span className="">Inventory</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/orders">
-<span className="material-symbols-outlined">shopping_cart</span>
-<span className="">Orders</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="#">
-<span className="material-symbols-outlined">groups</span>
-<span className="">Artisan Network</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/analytics">
-<span className="material-symbols-outlined">monitoring</span>
-<span className="">Analytics</span>
-</Link>
-{/*  Additional user requested tabs  */}
-<Link className="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-semibold transition-all duration-200" to="/admin/customers">
-<span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>person</span>
-<span className="">Customers</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/coupons">
-<span className="material-symbols-outlined">local_offer</span>
-<span className="">Coupons</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/reviews">
-<span className="material-symbols-outlined">reviews</span>
-<span className="">Reviews</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/content">
-<span className="material-symbols-outlined">article</span>
-<span className="">Content</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200 mt-auto" to="#">
-<span className="material-symbols-outlined">settings</span>
-<span className="">Settings</span>
-</Link>
-</div>
-</nav>
+<AdminSidebar />
 {/*  Main Content  */}
 <main className="ml-64 flex-1 flex flex-col h-full overflow-hidden">
 {/*  TopAppBar (Minimal, Sticky)  */}
@@ -257,7 +205,7 @@ const AdminCustomerManagement = () => {
 <div className="border-t border-outline-variant bg-surface-container-low px-6 py-4 flex justify-between items-center relative z-10 rounded-b-lg">
 <span className="font-label-caps text-label-caps text-on-surface-variant">SHOWING 1-4 OF 128 PATRONS</span>
 <div className="flex space-x-2">
-<button className="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-variant transition-colors disabled:opacity-50" disabled="">
+<button className="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-variant transition-colors disabled:opacity-50" disabled={true}>
 <span className="material-symbols-outlined text-[18px]">chevron_left</span>
 </button>
 <button className="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary shadow-sm">

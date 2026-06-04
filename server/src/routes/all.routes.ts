@@ -37,6 +37,7 @@ wishlistRouter.get('/check/:productId', wishlistController.check);
 // ── Orders ────────────────────────────────────────────────────
 export const orderRouter = Router();
 orderRouter.use(authenticate);
+orderRouter.post('/calculate-pricing', orderController.calculatePricing);
 orderRouter.post('/', validate(createOrderSchema), orderController.placeOrder);
 orderRouter.get('/my-orders', orderController.getMyOrders);
 orderRouter.get('/:id', orderController.getOrderById);
@@ -89,8 +90,9 @@ bannerRouter.delete('/:id', authenticate, authorize('admin', 'superadmin'), cmsC
 // ── Payments ──────────────────────────────────────────────────
 export const paymentRouter = Router();
 paymentRouter.get('/key', paymentController.getKey);
-paymentRouter.post('/create-order/:orderId', authenticate, paymentController.createOrder);
-paymentRouter.post('/verify', authenticate, validate(verifyPaymentSchema), paymentController.verify);
+paymentRouter.post('/create-order', authenticate, paymentController.initOrder); // Renamed from /init for new architecture
+paymentRouter.post('/create-order/:orderId', authenticate, paymentController.createOrder); // Legacy
+paymentRouter.post('/verify', authenticate, validate(createOrderSchema), orderController.placeOrder); // Maps to placeOrder which does Verify -> Create -> Inventory -> Clear Cart
 
 // ── Analytics ─────────────────────────────────────────────────
 export const analyticsRouter = Router();

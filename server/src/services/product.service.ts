@@ -4,17 +4,19 @@ import { ApiError } from '../utils/ApiError';
 import { getPaginationOptions } from '../utils/pagination';
 import { Request } from 'express';
 import type { CreateProductInput, UpdateProductInput } from '../validations/product.validation';
+import { productQueue } from '../queues/product.queue';
 
 class ProductService {
   async listProducts(req: Request) {
     const pagination = getPaginationOptions(req);
-    const { search, category, silkType, minPrice, maxPrice, minRating, isFeatured, inStock, sort } = req.query as any;
+    const { search, weaveType, color, occasion, minPrice, maxPrice, minRating, isFeatured, inStock, sort } = req.query as any;
 
     if (search) return productRepository.textSearch(search, pagination);
 
     const filter: Record<string, unknown> = {};
-    if (category) filter.category = category;
-    if (silkType) filter.silkType = silkType;
+    if (weaveType) filter.weaveType = { $in: weaveType.split(',') };
+    if (color) filter['attributes.color'] = { $in: color.split(',') };
+    if (occasion) filter['attributes.occasion'] = { $in: occasion.split(',') };
     if (isFeatured === 'true') filter.isFeatured = true;
     if (inStock === 'true') filter.stock = { $gt: 0 };
     if (minRating) filter.avgRating = { $gte: Number(minRating) };
@@ -23,6 +25,9 @@ class ProductService {
     if (minPrice) priceFilter.$gte = Number(minPrice);
     if (maxPrice) priceFilter.$lte = Number(maxPrice);
     if (Object.keys(priceFilter).length) filter.price = priceFilter;
+
+    if (sort === 'best_seller') filter.badge = 'Best Seller';
+    if (sort === 'authentic') filter.badge = 'Authentic Collection';
 
     const sortMap: Record<string, any> = {
       price_asc: { price: 1 }, price_desc: { price: -1 },
@@ -33,8 +38,19 @@ class ProductService {
     return productRepository.findForStorefront({ filter, pagination, sort: sortObj });
   }
 
+  async adminListProducts(req: Request) {
+    const pagination = getPaginationOptions(req);
+    return productRepository.findAll({ filter: {}, pagination, sort: { createdAt: -1 } });
+  }
+
   async getProductBySlug(slug: string) {
     const product = await productRepository.findBySlug(slug);
+    if (!product) throw ApiError.notFound('Product not found');
+    return product;
+  }
+
+  async getProductBySku(sku: string) {
+    const product = await productRepository.findBySku(sku);
     if (!product) throw ApiError.notFound('Product not found');
     return product;
   }
@@ -57,10 +73,24 @@ class ProductService {
     const skuExists = await productRepository.exists({ sku: data.sku });
     if (skuExists) throw ApiError.conflict('SKU already exists');
 
-    return productRepository.create({ ...data, slug, category: data.category as any });
+    // If we have temporary images, we need to process this asynchronously
+    if (data.tempImages && data.tempImages.length > 0) {
+      await productQueue.add('process-product', {
+        productData: data,
+        tempImages: data.tempImages,
+      });
+      return { status: 'Processing', message: 'Product creation queued. Images are being uploaded in the background.' };
+    }
+
+    // Fallback if uploading synchronously
+    if (!data.images || data.images.length === 0) {
+      throw ApiError.badRequest('Images are required');
+    }
+
+    return productRepository.create({ ...data, slug } as any);
   }
 
-  async updateProduct(id: string, data: UpdateProductInput) {
+  async updateProduct(id: string, data: UpdateProductInput & { imageUpdates?: any }) {
     const product = await productRepository.findById(id);
     if (!product) throw ApiError.notFound('Product not found');
 
@@ -68,6 +98,17 @@ class ProductService {
       const newSlug = slugify(data.name, { lower: true, strict: true });
       (data as any).slug = newSlug;
     }
+
+    if (data.imageUpdates && data.imageUpdates.some((img: any) => img.type === 'new')) {
+      await productQueue.add('update-product', {
+        productId: id,
+        productData: data,
+        imageUpdates: data.imageUpdates,
+        existingImages: product.images,
+      });
+      return { status: 'Processing', message: 'Product update queued. Images are being processed in the background.' };
+    }
+
     return productRepository.updateById(id, data as Record<string, unknown>);
   }
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
@@ -62,7 +61,7 @@ const AppRoutes = () => {
       <Route path="/" element={<MainLayout />}>
         <Route index element={<HomePage />} />
         <Route path="collections" element={<CollectionsPage />} />
-        <Route path="product/:id" element={<ProductDetailPage />} />
+        <Route path="product/:sku" element={<ProductDetailPage />} />
         <Route path="artisans" element={<ArtisanStoryPage />} />
         <Route path="cart" element={<ShoppingBagPage />} />
         
@@ -104,6 +103,7 @@ const AppRoutes = () => {
         <Route path="/admin/dashboard" element={<DashboardPage />} />
         <Route path="/admin/inventory" element={<ProductManagementPage />} />
         <Route path="/admin/inventory/new" element={<SareeCreationPage />} />
+        <Route path="/admin/inventory/edit/:id" element={<SareeCreationPage />} />
         <Route path="/admin/orders" element={<OrdersManagementPage />} />
         <Route path="/admin/customers" element={<CustomerManagementPage />} />
         <Route path="/admin/coupons" element={<CouponManagementPage />} />

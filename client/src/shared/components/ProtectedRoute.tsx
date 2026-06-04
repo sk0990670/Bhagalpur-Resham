@@ -1,7 +1,6 @@
-import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../app/store';
+import { RootState } from '../../app/store';
 
 interface ProtectedRouteProps {
   requireAuth?: boolean;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-const AccordionItem = ({ question, children }) => {
+const AccordionItem = ({ question, children }: { question: string; children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

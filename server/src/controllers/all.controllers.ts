@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/ApiResponse';
+import { ApiError } from '../utils/ApiError';
 import { categoryService } from '../services/category.service';
 import { cartService } from '../services/cart.service';
 import { wishlistService } from '../services/wishlist.service';
@@ -10,6 +11,68 @@ import { couponService } from '../services/coupon.service';
 import { cmsService } from '../services/cms.service';
 import { paymentService } from '../services/payment.service';
 import { analyticsService } from '../services/analytics.service';
+import { cloudinary } from '../config/cloudinary';
+import { v4 as uuidv4 } from 'uuid';
+import { valkeyClient } from '../config/valkey';
+
+// ── Upload Controller ────────────────────────────────────────
+class UploadController {
+  uploadImage = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.file) {
+      throw ApiError.badRequest('No image file provided');
+    }
+    
+    // Upload memory buffer to Cloudinary using a stream
+    const result: any = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'bhagalpur-resham/products' },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+      uploadStream.end(req.file!.buffer);
+    });
+
+    res.status(201).json(ApiResponse.created('Image uploaded successfully', {
+      url: result.secure_url,
+      publicId: result.public_id,
+    }));
+  });
+
+  uploadImageTemp = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.file) {
+      throw ApiError.badRequest('No image file provided');
+    }
+    
+    const tempId = uuidv4();
+    // Save buffer as a base64 string in Valkey (TTL 1 hour)
+    const base64Data = req.file.buffer.toString('base64');
+    const mimeType = req.file.mimetype;
+    
+    await valkeyClient.setex(`temp_image:${tempId}`, 3600, JSON.stringify({ mimeType, data: base64Data }));
+
+    res.status(201).json(ApiResponse.created('Image saved to temporary storage', { tempId }));
+  });
+
+  getPreview = asyncHandler(async (req: Request, res: Response) => {
+    const { tempId } = req.params;
+    const imageData = await valkeyClient.get(`temp_image:${tempId}`);
+    
+    if (!imageData) {
+      res.status(404).send('Image not found or expired');
+      return;
+    }
+
+    const { mimeType, data } = JSON.parse(imageData);
+    const buffer = Buffer.from(data, 'base64');
+    
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', buffer.length);
+    res.status(200).send(buffer);
+  });
+}
+export const uploadController = new UploadController();
 
 // ── Category Controller ──────────────────────────────────────
 class CategoryController {
@@ -46,6 +109,7 @@ export const wishlistController = new WishlistController();
 
 // ── Order Controller ─────────────────────────────────────────
 class OrderController {
+  calculatePricing = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Pricing calculated', await orderService.calculateOrderPricing(req.user!.userId, req.body))); });
   placeOrder = asyncHandler(async (req, res) => { res.status(201).json(ApiResponse.created('Order placed', await orderService.placeOrder(req.user!.userId, req.body))); });
   getMyOrders = asyncHandler(async (req, res) => { const r = await orderService.getMyOrders(req.user!.userId, req); res.json(ApiResponse.ok('Orders', r.data, r.meta)); });
   getOrderById = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Order', await orderService.getOrderById(req.params.id as string, req.user!.userId, req.user!.role))); });
@@ -104,6 +168,7 @@ export const cmsController = new CmsController();
 // ── Payment Controller ───────────────────────────────────────
 class PaymentController {
   getKey = asyncHandler(async (_req, res) => { res.json(ApiResponse.ok('Key', await paymentService.getRazorpayKey())); });
+  initOrder = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Razorpay Intent generated', await paymentService.initRazorpayOrder(req.user!.userId, req.body))); });
   createOrder = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Razorpay order created', await paymentService.createRazorpayOrder(req.params.orderId as string))); });
   verify = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Payment verified', await paymentService.verifyPayment(req.body))); });
 }

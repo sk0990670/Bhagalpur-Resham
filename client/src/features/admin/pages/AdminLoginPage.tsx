@@ -1,33 +1,61 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../auth/authSlice';
+import { authService } from '../../../shared/services/auth.service';
 import bhagalpurReshamBrandLogoAsset from '../../../assets/bhagalpur_resham_brand_logo.png';
 
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login for now
-    if (email === 'admin@bhagalpurresham.com' && password === 'admin') {
-      const dummyAdmin = {
-        id: 'admin_123',
-        name: 'System Admin',
-        email: 'admin@bhagalpurresham.com',
-        role: 'admin'
-      };
-      dispatch(setCredentials({ user: dummyAdmin, token: 'dummy_admin_token' }));
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await authService.login({ email: email.trim(), password });
+      
+      // Safety check in case the response structure is different than expected
+      const user = response?.data?.user || response?.user;
+      const accessToken = response?.data?.accessToken || response?.accessToken;
+      
+      if (!user || !accessToken) {
+        throw new Error(`Unexpected API response structure: ${JSON.stringify(response)}`);
+      }
+
+      // Ensure user has admin rights
+      if (user.role !== 'admin' && user.role !== 'superadmin') {
+        setError('Access denied. Administrator privileges required.');
+        setIsLoading(false);
+        return;
+      }
+
+      dispatch(setCredentials({ user, token: accessToken }));
       
       const from = location.state?.from?.pathname || '/admin/dashboard';
       navigate(from, { replace: true });
-    } else {
-      alert('Invalid credentials. Use admin@bhagalpurresham.com / admin');
+    } catch (err: any) {
+      console.error('Login error', err);
+      let errorMsg = 'An unknown error occurred';
+      if (err.response) {
+        errorMsg = err.response.data?.message || err.response.statusText;
+      } else if (err.request) {
+        errorMsg = 'Network Error - Could not connect to the server';
+      } else {
+        errorMsg = err.message;
+      }
+      setError(`Login Failed: ${errorMsg}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -74,6 +102,13 @@ const AdminLogin = () => {
               <h1 className="font-headline-xl text-headline-xl text-primary mb-2">Administrative Portal</h1>
               <p className="font-label-caps text-label-caps text-outline uppercase tracking-widest mt-4">Authorized Personnel Only</p>
             </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-error-container text-on-error-container border-l-4 border-error text-sm font-body-md flex items-center gap-3">
+                <span className="material-symbols-outlined text-error">error</span>
+                {error}
+              </div>
+            )}
             
             <form className="space-y-8" onSubmit={handleLogin}>
               <div className="relative">
@@ -96,16 +131,28 @@ const AdminLogin = () => {
                 <label className="block text-sm text-on-surface-variant font-label-caps uppercase mb-2" htmlFor="password">
                   Password
                 </label>
-                <input 
-                  className="block w-full border-0 border-b border-primary bg-transparent py-2 px-0 text-on-surface focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant/70" 
-                  id="password" 
-                  name="password" 
-                  placeholder="admin" 
-                  required 
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <input 
+                    className="block w-full border-0 border-b border-primary bg-transparent py-2 px-0 pr-10 text-on-surface focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant/70" 
+                    id="password" 
+                    name="password" 
+                    placeholder="admin" 
+                    required 
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-outline-variant hover:text-primary transition-colors flex items-center justify-center p-2 cursor-pointer"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      {showPassword ? 'visibility_off' : 'visibility'}
+                    </span>
+                  </button>
+                </div>
               </div>
               
               <div className="flex items-center justify-between mt-4">
@@ -129,12 +176,13 @@ const AdminLogin = () => {
               
               <div className="pt-6">
                 <button 
-                  className="group relative w-full flex justify-center py-4 px-4 border border-transparent font-label-caps text-label-caps text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden cursor-pointer" 
+                  className="group relative w-full flex justify-center py-4 px-4 border border-transparent font-label-caps text-label-caps text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed" 
                   type="submit"
+                  disabled={isLoading}
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    Secure Login
-                    <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_forward</span>
+                    {isLoading ? 'Authenticating...' : 'Secure Login'}
+                    {!isLoading && <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_forward</span>}
                   </span>
                   <div className="absolute inset-0 h-full w-0 bg-white/10 group-hover:w-full transition-all duration-500 ease-out"></div>
                 </button>

@@ -5,7 +5,11 @@ export class ProductRepository extends BaseRepository<IProduct> {
   constructor() { super(Product); }
 
   async findBySlug(slug: string) {
-    return Product.findOne({ slug, isActive: true }).populate('category', 'name slug').exec();
+    return Product.findOne({ slug, isActive: true }).exec();
+  }
+
+  async findBySku(sku: string) {
+    return Product.findOne({ sku, isActive: true }).exec();
   }
 
   async findForStorefront(opts: {
@@ -17,7 +21,6 @@ export class ProductRepository extends BaseRepository<IProduct> {
       filter: { isActive: true, ...opts.filter },
       pagination: opts.pagination,
       sort: opts.sort,
-      populate: 'category',
     });
   }
 
@@ -53,7 +56,6 @@ export class ProductRepository extends BaseRepository<IProduct> {
   async getFeatured(limit = 10) {
     return Product.find({ isFeatured: true, isActive: true, stock: { $gt: 0 } })
       .limit(limit)
-      .populate('category', 'name slug')
       .exec();
   }
 }

@@ -106,3 +106,6 @@ temp/
 # ── API Testing Files ─────────────────────────────────────────
 Bhagalpur-Resham.postman_collection.json
 api.http
+
+# ── Scripts ───────────────────────────────────────────────────
+add_product_script.js

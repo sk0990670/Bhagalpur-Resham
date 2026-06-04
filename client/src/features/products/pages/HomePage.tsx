@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import hoverVideoAsset from '../../../assets/hover-video.mp4';
 import highEndFashionPhotographyOfAModelInALuxuriousBhagalpuriSilkSareeAsset from '../../../assets/high_end_fashion_photography_of_a_model_in_a_luxurious_bhagalpuri_silk_saree.png';

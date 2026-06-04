@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { SILK_TYPES, SilkType } from '../utils/constants';
+import { WEAVE_TYPES, WeaveType } from '../utils/constants';
 
 /**
  * @swagger
@@ -24,9 +24,8 @@ import { SILK_TYPES, SilkType } from '../utils/constants';
  *         discountPrice: { type: number, nullable: true }
  *         stock: { type: integer }
  *         images: { type: array, items: { $ref: '#/components/schemas/ProductImage' } }
- *         category: { type: string }
  *         tags: { type: array, items: { type: string } }
- *         silkType: { type: string }
+ *         weaveType: { type: string }
  *         weight: { type: number }
  *         dimensions: { type: object }
  *         avgRating: { type: number }
@@ -41,6 +40,7 @@ export interface IProductImage {
   publicId: string;
   alt?: string;
   isPrimary: boolean;
+  shotType?: 'full_body' | 'close_up' | 'micro';
 }
 
 export interface IProduct extends Document {
@@ -53,9 +53,8 @@ export interface IProduct extends Document {
   discountPrice?: number;
   stock: number;
   images: IProductImage[];
-  category: mongoose.Types.ObjectId;
   tags: string[];
-  silkType?: SilkType;
+  weaveType?: WeaveType;
   weight?: number; // grams
   dimensions?: {
     length: number; // cm
@@ -67,6 +66,7 @@ export interface IProduct extends Document {
   isActive: boolean;
   attributes?: Record<string, string>; // flexible: { color, occasion, blouse_piece }
   careInstructions?: string;
+  badge?: 'Normal' | 'Authentic Collection' | 'New Arrival' | 'Best Seller';
   origin?: string;
   gstPercent?: number;
   createdAt: Date;
@@ -82,6 +82,7 @@ const productImageSchema = new Schema<IProductImage>(
     publicId: { type: String, required: true },
     alt: { type: String },
     isPrimary: { type: Boolean, default: false },
+    shotType: { type: String, enum: ['full_body', 'close_up', 'micro'] },
   },
   { _id: false },
 );
@@ -135,15 +136,10 @@ const productSchema = new Schema<IProduct>(
       default: 0,
     },
     images: [productImageSchema],
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: 'Category',
-      required: [true, 'Category is required'],
-    },
     tags: [{ type: String, lowercase: true, trim: true }],
-    silkType: {
+    weaveType: {
       type: String,
-      enum: SILK_TYPES,
+      enum: WEAVE_TYPES,
     },
     weight: { type: Number, min: 0 },
     dimensions: {
@@ -156,6 +152,11 @@ const productSchema = new Schema<IProduct>(
     isActive: { type: Boolean, default: true },
     attributes: { type: Map, of: String },
     careInstructions: { type: String },
+    badge: {
+      type: String,
+      enum: ['Normal', 'Authentic Collection', 'New Arrival', 'Best Seller'],
+      default: 'Normal',
+    },
     origin: { type: String, default: 'Bhagalpur, Bihar' },
     gstPercent: { type: Number, default: 5 },
   },
@@ -181,22 +182,16 @@ productSchema.virtual('discountPercent').get(function () {
 productSchema.index({ isActive: 1, avgRating: -1 });
 // Featured carousel
 productSchema.index({ isFeatured: 1, isActive: 1 });
-// Category page (most common query)
-productSchema.index({ category: 1, isActive: 1, avgRating: -1 });
 // Admin stock management
 productSchema.index({ stock: 1, isActive: 1 });
 // Price range filter
 productSchema.index({ price: 1, discountPrice: 1 });
 // Silk type filter (unique to Bhagalpur domain)
-productSchema.index({ silkType: 1, isActive: 1 });
+productSchema.index({ weaveType: 1, isActive: 1 });
 // Tag-based filtering
 productSchema.index({ tags: 1 });
 // Full-text search
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
-// Slug lookup
-productSchema.index({ slug: 1 }, { unique: true });
-// SKU lookup (admin)
-productSchema.index({ sku: 1 }, { unique: true });
 // Popularity (orders count proxy via numReviews + rating)
 productSchema.index({ numReviews: -1, avgRating: -1 });
 

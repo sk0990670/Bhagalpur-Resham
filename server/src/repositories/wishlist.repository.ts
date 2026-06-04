@@ -5,7 +5,7 @@ export class WishlistRepository extends BaseRepository<IWishlist> {
   constructor() { super(Wishlist); }
 
   async findByUser(userId: string) {
-    return Wishlist.findOne({ user: userId }).populate('items.product', 'name images price discountPrice stock avgRating isFeatured').exec();
+    return Wishlist.findOne({ user: userId }).populate('items.product', 'name sku images price discountPrice stock avgRating isFeatured weaveType badge careInstructions attributes').exec();
   }
 
   async addItem(userId: string, productId: string) {

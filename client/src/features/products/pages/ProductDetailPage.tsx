@@ -1,7 +1,87 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../app/store';
+import { productService } from '../../../shared/services/product.service';
+import { useWishlist } from '../../wishlist/useWishlist';
+import { useCart } from '../../cart/useCart';
+import { useToast } from '../../../shared/hooks/useToast';
+import { ToastContainer } from '../../../shared/components/Toast';
 
 const ProductDetail = () => {
+  const { sku } = useParams<{ sku: string }>();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
+  const { toasts, showToast, removeToast } = useToast();
+  const { isInWishlist, toggleItem } = useWishlist(showToast);
+  const { addToCart } = useCart(showToast);
+
+  const [product, setProduct] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!sku) return;
+      setIsLoading(true);
+      setError('');
+      try {
+        const res = await productService.getProductBySku(sku);
+        if (res.success) {
+          setProduct(res.data);
+        } else {
+          setError(res.message || 'Failed to fetch product.');
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || err.message || 'Failed to fetch product.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [sku]);
+
+  if (isLoading) {
+    return (
+      <main className="pt-[100px] md:pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto flex justify-center items-center h-96">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      </main>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <main className="pt-[100px] md:pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto text-center">
+        <h2 className="text-2xl font-headline-md text-error mb-4">Product Not Found</h2>
+        <p className="text-on-surface-variant mb-6">{error || 'The product you are looking for does not exist or has been removed.'}</p>
+        <button onClick={() => navigate('/collections')} className="px-6 py-2 bg-primary text-on-primary rounded-md">
+          Back to Collections
+        </button>
+      </main>
+    );
+  }
+
+  const isWishlisted = product ? isInWishlist(product._id) : false;
+  const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+  const allImages = product.images || [];
+
+  const handleAddToBag = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    await addToCart(product._id, 1, product.name);
+  };
+
+  const handleAddToWishlist = () => {
+    toggleItem(product._id, product.name);
+  };
+
   return (
+    <>
     <main className="pt-[100px] md:pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
       {/* Product Showcase (Bento-style Gallery + Details) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-section-gap">
@@ -10,35 +90,41 @@ const ProductDetail = () => {
           <div className="w-full aspect-[3/4] bg-surface-container-low overflow-hidden shadow-tinted relative border border-outline-variant/20 p-2">
             <div className="w-full h-full border border-secondary-container p-1 relative">
               <img 
-                alt="Full shot of Rajshahi Tussar Silk Saree" 
+                alt={product.name} 
                 className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 cursor-zoom-in" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAg8gMr7CdgMmrlfIjr7sQHdQHGqylo50Vm1aw0hVFiviOEYvkNXRjn52PS-LiAVzRc1nOeM5nC4T7i3qGql4L22pUTQtDN1tI7k2AkS_E72nagADRDDGssEPzB0U3lMoFFo6Ex7CiVf1cAtEURJlNuHvWAmWlCqB8g9RQXcJWtfO8odrEJrp8d0CI6hYmJjo615ww14fLJFoqqV32cSCr7oy3aCbxuDtlXPzd_1Cp1a8EOlJydBzTtmoZd-6eWimuYRwV0_3ylmXPZ" 
+                src={allImages[activeImageIndex]?.url} 
               />
-              {/* Artisan Badge */}
-              <div className="absolute bottom-4 right-4 bg-surface/90 rounded-full w-12 h-12 flex items-center justify-center border border-secondary backdrop-blur-sm shadow-sm" title="Silk Mark Certified">
-                <svg fill="none" height="24" stroke="#735c00" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
-                  <path d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
-                </svg>
-              </div>
+              {/* Artisan Badge (Authentic) */}
+              {product.badge === 'Authentic Collection' && (
+                <div className="absolute bottom-4 right-4 bg-surface/90 rounded-full p-2 flex items-center justify-center border border-secondary backdrop-blur-sm shadow-sm" title="Silk Mark Certified">
+                  <span className="material-symbols-outlined text-secondary" style={{ fontSize: '24px' }}>verified</span>
+                </div>
+              )}
+              {/* Tag Overlay (New Arrival / Best Seller) */}
+              {(product.badge === 'New Arrival' || product.badge === 'Best Seller') && (
+                <div className="absolute top-4 left-4 bg-surface/90 text-primary font-label-caps text-xs px-3 py-1.5 border border-primary/20 uppercase">
+                  {product.badge}
+                </div>
+              )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-square bg-surface-container-low overflow-hidden shadow-tinted border border-outline-variant/20 p-1">
-              <img 
-                alt="Close up of Saree pallu" 
-                className="w-full h-full object-cover" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbleXReDvh8YBb-YmvbLa77e0pXQuKXPi3ZqTLx1dwbG_7EnSKmasTpMRJUAgjwOFFu_nOPOENjkEIKJucyEZvNmNqrcLGXTYJ7lVD9eFnf0V7buM8xzE1xjM_z9RXgjumqpkkKhpWKefXfC79SB33OgMLBVk9Gubn7DVm4tvWwyl7dxxqos_7DakereUXKGJJv-VdI7bz4gajCrhvkXCLGNOnF7t4ia7cO637qoqvYiHFMc3yGwE_ulPLvSTSZGcl17JB27hCCY2A" 
-              />
+          {allImages.length > 1 && (
+            <div className="grid grid-cols-4 gap-4">
+              {allImages.map((img: any, index: number) => (
+                <div 
+                  key={index} 
+                  onClick={() => setActiveImageIndex(index)}
+                  className={`aspect-square bg-surface-container-low overflow-hidden shadow-tinted border p-1 cursor-pointer transition-colors ${index === activeImageIndex ? 'border-primary' : 'border-outline-variant/20 hover:border-primary/50'}`}
+                >
+                  <img 
+                    alt={`${product.name} - view ${index + 1}`} 
+                    className="w-full h-full object-cover" 
+                    src={img.url} 
+                  />
+                </div>
+              ))}
             </div>
-            <div className="aspect-square bg-surface-container-low overflow-hidden shadow-tinted border border-outline-variant/20 p-1">
-              <img 
-                alt="Detail of Mithila motif" 
-                className="w-full h-full object-cover" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8Mld9tCLoC_unJczyICPgE6o_qAHL49_y3chZQaOd7-CEUFvcgiEqvOWTNY2RLXxWbNKp-UnB2VnoT9Y6YHcIkB9t1jDX6KvglXeAyQOj4hNjckUDmY_HLM_eF5p8f2mVgvrpToDqBuRhJQgq8uS1nBPf7GgYsblIv5QUwIz8XocLmCdUeQKF78PtUBJQtXZYXysB4vWkKcGKy3IgoMMfID0vYYmv3SDGa7o39jp8knlc7r7IQMteZANAJSadrwIS_NdHZr0Vug7A" 
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Product Info (Right - 5 cols) sticky */}
@@ -46,39 +132,75 @@ const ProductDetail = () => {
           <div className="sticky top-[120px] flex flex-col gap-6 p-6 bg-surface-container-low/50 shadow-tinted border border-outline-variant/20 backdrop-blur-sm">
             <div>
               <p className="font-label-caps text-label-caps text-on-surface-variant tracking-[0.2em] mb-2 uppercase">Handcrafted in Bhagalpur</p>
-              <h1 className="font-headline-xl text-headline-xl text-primary mb-2">Rajshahi Tussar Silk Saree</h1>
-              <p className="font-body-lg text-body-lg text-on-surface-variant">₹ 24,500 <span className="text-sm ml-2 opacity-70">Incl. of all taxes</span></p>
+              <h1 className="font-headline-xl text-headline-xl text-primary mb-2">{product.name}</h1>
+              <div className="flex items-center gap-4">
+                {product.discountPrice ? (
+                  <>
+                    <p className="font-body-lg text-body-lg text-on-surface-variant line-through opacity-70">₹ {product.price.toLocaleString()}</p>
+                    <p className="font-body-lg text-body-lg text-primary font-semibold">₹ {product.discountPrice.toLocaleString()} <span className="text-sm ml-2 opacity-70 font-normal">Incl. of all taxes</span></p>
+                  </>
+                ) : (
+                  <p className="font-body-lg text-body-lg text-on-surface-variant">₹ {product.price.toLocaleString()} <span className="text-sm ml-2 opacity-70">Incl. of all taxes</span></p>
+                )}
+              </div>
             </div>
             <div className="w-full h-px bg-outline-variant/30 my-2 relative flex justify-center items-center">
               <span className="material-symbols-outlined text-secondary absolute bg-surface-container-low px-2" style={{ fontSize: '16px' }}>filter_vintage</span>
             </div>
             <p className="font-story-serif text-story-serif text-on-surface-variant leading-relaxed">
-              A masterpiece taking 12 days to weave, this pure Tussar silk saree features the sacred Mithila fish motif along its borders—a centuries-old symbol of fertility and prosperity. Woven on traditional pit looms, its unbleached ivory base contrasts beautifully with rich madder-red accents.
+              {product.description}
             </p>
             
             <div className="flex flex-col gap-3 mt-4">
               <div className="flex justify-between border-b border-outline-variant/30 pb-2">
+                <span className="font-label-caps text-label-caps text-on-surface-variant">SKU</span>
+                <span className="font-body-md text-on-surface">{product.sku}</span>
+              </div>
+              <div className="flex justify-between border-b border-outline-variant/30 pb-2">
                 <span className="font-label-caps text-label-caps text-on-surface-variant">Fabric</span>
                 <span className="font-body-md text-on-surface">Pure Tussar Silk</span>
               </div>
-              <div className="flex justify-between border-b border-outline-variant/30 pb-2">
-                <span className="font-label-caps text-label-caps text-on-surface-variant">Technique</span>
-                <span className="font-body-md text-on-surface">Handloom & Zari</span>
-              </div>
-              <div className="flex justify-between border-b border-outline-variant/30 pb-2">
-                <span className="font-label-caps text-label-caps text-on-surface-variant">Care</span>
-                <span className="font-body-md text-on-surface">Dry Clean Only</span>
-              </div>
+              {product.attributes?.weaveType && (
+                <div className="flex justify-between border-b border-outline-variant/30 pb-2">
+                  <span className="font-label-caps text-label-caps text-on-surface-variant">Weave Type</span>
+                  <span className="font-body-md text-on-surface">{product.attributes.weaveType}</span>
+                </div>
+              )}
+              {product.careInstructions && (
+                <div className="flex justify-between border-b border-outline-variant/30 pb-2">
+                  <span className="font-label-caps text-label-caps text-on-surface-variant">Care</span>
+                  <span className="font-body-md text-on-surface">{product.careInstructions}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-3 mt-6">
-              <button className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-caps text-label-caps py-4 transition-all duration-300 shadow-sm flex items-center justify-center gap-2 group cursor-pointer">
-                Add to Bag
-                <span className="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform">shopping_bag</span>
+              <button 
+                onClick={handleAddToBag}
+                disabled={product.stock <= 0}
+                className="flex-grow bg-primary-container text-[#FFD700] hover:bg-primary transition-colors py-4 px-6 font-label-caps text-label-caps tracking-widest flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-container"
+              >
+                {product.stock > 0 ? 'ADD TO BAG' : 'OUT OF STOCK'}
+                <span className="material-symbols-outlined text-[18px]">local_mall</span>
               </button>
-              <button className="w-full bg-transparent border border-secondary text-primary font-label-caps text-label-caps py-4 transition-all duration-300 hover:bg-surface-variant flex items-center justify-center gap-2 cursor-pointer">
-                Add to Wishlist
-                <span className="material-symbols-outlined">favorite_border</span>
+              <button
+                onClick={handleAddToWishlist}
+                className="w-full bg-transparent border font-label-caps text-label-caps py-4 transition-all duration-300 hover:bg-surface-variant flex items-center justify-center gap-2 cursor-pointer"
+                style={{
+                  borderColor: isWishlisted ? '#C41E3A' : undefined,
+                  color: isWishlisted ? '#C41E3A' : undefined,
+                }}
+              >
+                {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                <span
+                  className="material-symbols-outlined transition-all duration-200"
+                  style={{
+                    fontVariationSettings: isWishlisted ? "'FILL' 1" : "'FILL' 0",
+                    color: isWishlisted ? '#C41E3A' : 'currentColor',
+                  }}
+                >
+                  favorite
+                </span>
               </button>
             </div>
 
@@ -98,6 +220,8 @@ const ProductDetail = () => {
         </div>
       </div>
     </main>
+    <ToastContainer toasts={toasts} onRemove={removeToast} />
+    </>
   );
 };
 

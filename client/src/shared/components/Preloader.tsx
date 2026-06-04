@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import preloaderAsset from '../../assets/preloader.mp4';
 
 
-const Preloader = ({ onComplete }) => {
+const Preloader = ({ onComplete }: { onComplete: () => void }) => {
   const [isFading, setIsFading] = useState(false);
-  const videoRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {

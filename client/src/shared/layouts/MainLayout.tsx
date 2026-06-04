@@ -1,12 +1,20 @@
 import React from 'react';
-import { Outlet, Link, NavLink } from 'react-router-dom';
+import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../app/store';
 import bhagalpurReshamBrandLogoAsset from '../../assets/bhagalpur_resham_brand_logo.png';
 
 
 const Layout = () => {
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user, token } = useSelector((state: RootState) => state.auth);
+  const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const navigate = useNavigate();
+
+  // Only count wishlist/cart if user has a real JWT (3 segments), not a dummy token
+  const hasValidToken = Boolean(token && token.split('.').length === 3);
+  const wishlistCount = isAuthenticated && hasValidToken ? wishlistItems.length : 0;
+  const cartCount = isAuthenticated && hasValidToken ? cartItems.length : 0;
   
   let accountLink = '/login';
   if (isAuthenticated) {
@@ -16,6 +24,20 @@ const Layout = () => {
       accountLink = '/dashboard';
     }
   }
+
+  const handleNavWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: { pathname: '/wishlist' },
+          message: 'Please login to view your saved sarees.',
+        },
+      });
+    } else {
+      navigate('/wishlist');
+    }
+  };
 
   return (
     <div className="bg-surface text-on-surface font-body-md antialiased pt-[88px] min-h-screen flex flex-col">
@@ -71,11 +93,34 @@ const Layout = () => {
             <Link aria-label="Search" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/search">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>search</span>
             </Link>
-            <Link aria-label="Wishlist" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/wishlist">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>favorite</span>
-            </Link>
-            <Link aria-label="Shopping Bag" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/cart">
+            <button
+              aria-label="Wishlist"
+              onClick={handleNavWishlistClick}
+              className="relative focus:outline-none cursor-pointer active:scale-95 transition-transform"
+            >
+              <span
+                className="material-symbols-outlined transition-all duration-200"
+                style={{
+                  fontVariationSettings: isAuthenticated && wishlistCount > 0 ? "'FILL' 1" : "'FILL' 0",
+                  color: isAuthenticated && wishlistCount > 0 ? '#C41E3A' : undefined,
+                }}
+              >
+                favorite
+              </span>
+              {isAuthenticated && wishlistCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] flex items-center justify-center rounded-full text-[9px] font-bold leading-none"
+                  style={{ backgroundColor: '#C41E3A', color: '#fff' }}>
+                  {wishlistCount > 9 ? '9+' : wishlistCount}
+                </span>
+              )}
+            </button>
+            <Link aria-label="Shopping Bag" className="relative text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/cart">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>shopping_bag</span>
+              {isAuthenticated && cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] flex items-center justify-center rounded-full text-[9px] font-bold leading-none bg-primary text-on-primary">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </Link>
             {isAuthenticated ? (
               <Link aria-label="Account" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95 hidden sm:block" to={accountLink}>

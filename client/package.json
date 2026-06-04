@@ -16,6 +16,7 @@
     "@types/node": "^25.9.1",
     "axios": "^1.16.1",
     "chart.js": "^4.5.1",
+    "form-data": "^4.0.5",
     "jwt-decode": "^4.0.0",
     "react": "^19.2.6",
     "react-chartjs-2": "^5.3.1",

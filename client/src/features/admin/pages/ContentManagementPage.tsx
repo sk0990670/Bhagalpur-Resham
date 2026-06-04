@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import AdminSidebar from '../../../shared/components/AdminSidebar';
 import bhagalpurReshamBrandLogoAsset from '../../../assets/bhagalpur_resham_brand_logo.png';
 
 
@@ -8,58 +8,7 @@ const ContentManagementPage = () => {
         <div className="bg-surface text-on-surface font-body-md text-body-md min-h-screen w-full overflow-hidden flex bg-pattern-madhubani">
             
 {/*  SideNavBar  */}
-<nav className="bg-surface-container-low border-r border-outline-variant h-full w-64 fixed left-0 top-0 flex flex-col py-8 px-4 gap-4 z-40">
-<div className="mb-8 px-4 flex flex-col items-center">
-<div className="w-16 h-16 rounded-full bg-surface-container-highest mb-4 overflow-hidden border border-outline-variant flex items-center justify-center">
-<img alt="Admin Avatar" className="w-full h-full object-cover" data-alt="Professional headshot of an administrator. Soft studio lighting. Elegant and approachable, conveying a sense of curated luxury and trust suitable for a premium heritage brand dashboard." src={bhagalpurReshamBrandLogoAsset}/>
-</div>
-<h2 className="font-headline-md text-[22px] leading-tight text-primary text-center font-bold">Bhagalpur Resham Admin</h2>
-<p className="font-body-md text-body-md text-on-surface-variant text-sm mt-1">Luxury Silk Management</p>
-</div>
-<div className="flex flex-col gap-2 flex-grow overflow-y-auto">
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/dashboard">
-<span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>dashboard</span>
-<span className="">Dashboard</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/inventory">
-<span className="material-symbols-outlined">inventory_2</span>
-<span className="">Inventory</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/orders">
-<span className="material-symbols-outlined">shopping_cart</span>
-<span className="">Orders</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="#">
-<span className="material-symbols-outlined">groups</span>
-<span className="">Artisan Network</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/analytics">
-<span className="material-symbols-outlined">monitoring</span>
-<span className="">Analytics</span>
-</Link>
-{/*  Additional user requested tabs  */}
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/customers">
-<span className="material-symbols-outlined">person</span>
-<span className="">Customers</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/coupons">
-<span className="material-symbols-outlined">local_offer</span>
-<span className="">Coupons</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200" to="/admin/reviews">
-<span className="material-symbols-outlined">reviews</span>
-<span className="">Reviews</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-semibold transition-all duration-200" to="/admin/content">
-<span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>article</span>
-<span className="">Content</span>
-</Link>
-<Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded-lg transition-all duration-200 mt-auto" to="#">
-<span className="material-symbols-outlined">settings</span>
-<span className="">Settings</span>
-</Link>
-</div>
-</nav>
+<AdminSidebar />
 {/*  Main Content  */}
 <main className="ml-64 flex-1 flex flex-col h-full overflow-hidden">
 {/*  TopAppBar (Minimal, Sticky)  */}
@@ -125,7 +74,7 @@ const ContentManagementPage = () => {
 {/*  Banner Item 1  */}
 <div className="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low border border-outline-variant/30 hover:border-primary/30 transition-colors">
 <div className="w-32 h-20 bg-surface-variant rounded flex-shrink-0 overflow-hidden relative ornamental-border">
-<div className="inner-border w-full h-full bg-cover bg-center" data-alt="Close up shot of rich, dark red silk fabric with intricate gold embroidery along the border. The lighting is soft and directional, highlighting the texture and sheen of the silk. The mood is luxurious and traditional, perfectly matching the heritage modernism aesthetic." style={{ backgroundImage: 'url(&quot', https: '//lh3.googleusercontent.com/aida-public/AB6AXuCDk5ZCMrG04SUcvWdFz05quRnF-RndOwvuwqY6bXEPZ9dq7hPCIcO9-EUI4vP_poS1aigih-ce1vk-p3-WhuhLPXDRM-PlysdmGWUiTEEYOPQ8q8vXT7K7Z4ryZWcQiMgqhX1jEPoxJE41TCvip6UYEZ4b60IO0z3EFmK0vY8QA41IETf-q9qRE8a3KqiA6UnbwB5E9Fkwycpnqcd30ow6Y996mxP3EmvbXa61WZ3p43prN5lrZwfYb38Zl9B_0e3lgVEmhQtA7ezM&quot' }}></div>
+<div className="inner-border w-full h-full bg-cover bg-center" data-alt="Close up shot of rich, dark red silk fabric with intricate gold embroidery along the border. The lighting is soft and directional, highlighting the texture and sheen of the silk. The mood is luxurious and traditional, perfectly matching the heritage modernism aesthetic." style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCDk5ZCMrG04SUcvWdFz05quRnF-RndOwvuwqY6bXEPZ9dq7hPCIcO9-EUI4vP_poS1aigih-ce1vk-p3-WhuhLPXDRM-PlysdmGWUiTEEYOPQ8q8vXT7K7Z4ryZWcQiMgqhX1jEPoxJE41TCvip6UYEZ4b60IO0z3EFmK0vY8QA41IETf-q9qRE8a3KqiA6UnbwB5E9Fkwycpnqcd30ow6Y996mxP3EmvbXa61WZ3p43prN5lrZwfYb38Zl9B_0e3lgVEmhQtA7ezM")' }}></div>
 </div>
 <div className="flex-1">
 <h4 className="font-headline-md text-lg">Festive Collection Launch</h4>
@@ -143,7 +92,7 @@ const ContentManagementPage = () => {
 {/*  Banner Item 2  */}
 <div className="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low border border-outline-variant/30 hover:border-primary/30 transition-colors opacity-75">
 <div className="w-32 h-20 bg-surface-variant rounded flex-shrink-0 overflow-hidden relative ornamental-border">
-<div className="inner-border w-full h-full bg-cover bg-center" data-alt="A wide shot of a traditional handloom in a softly lit, rustic workshop. A weaver's hands are visible working the threads. The color palette is earthy with warm wooden tones and raw silk whites. The aesthetic is authentic and artisanal, focusing on the craft of Bhagalpur silk." style={{ backgroundImage: 'url(&quot', https: '//lh3.googleusercontent.com/aida-public/AB6AXuBU7fOGGMnE5jjd-zwkalApuAvKrxAFkQAxIVb3FvNqNNNAlLAT44cR8KiOjg5G-aZiVquU7cykmdk131d7P-ihdhVfu8pOP9KxkPR5s_y5HFYzfj7IqozT2p0YJDaFHUSOrqHD5Ru-z0OWYcnnguN2oF1nvkoAHV78XFZEqKCWZBMz0FYdVeaj-NkDHrpInRc8gCOO5GYZIRFJA5oUkskpermJ90m6tOj-SpgZwPpX-ewpC3rVaHUKFKUqC2aMb0V5_IuP8o92cz-Y&quot' }}></div>
+<div className="inner-border w-full h-full bg-cover bg-center" data-alt="A wide shot of a traditional handloom in a softly lit, rustic workshop. A weaver's hands are visible working the threads. The color palette is earthy with warm wooden tones and raw silk whites. The aesthetic is authentic and artisanal, focusing on the craft of Bhagalpur silk." style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBU7fOGGMnE5jjd-zwkalApuAvKrxAFkQAxIVb3FvNqNNNAlLAT44cR8KiOjg5G-aZiVquU7cykmdk131d7P-ihdhVfu8pOP9KxkPR5s_y5HFYzfj7IqozT2p0YJDaFHUSOrqHD5Ru-z0OWYcnnguN2oF1nvkoAHV78XFZEqKCWZBMz0FYdVeaj-NkDHrpInRc8gCOO5GYZIRFJA5oUkskpermJ90m6tOj-SpgZwPpX-ewpC3rVaHUKFKUqC2aMb0V5_IuP8o92cz-Y")' }}></div>
 </div>
 <div className="flex-1">
 <h4 className="font-headline-md text-lg">The Weaver's Tale</h4>

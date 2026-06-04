@@ -39,6 +39,8 @@ router.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+import uploadRouter from './upload.routes';
+
 router.use('/auth', authRouter);
 router.use('/users', userRouter);
 router.use('/products', productRouter);
@@ -52,5 +54,6 @@ router.use('/cms', cmsRouter);
 router.use('/banners', bannerRouter);
 router.use('/payments', paymentRouter);
 router.use('/analytics', analyticsRouter);
+router.use('/upload', uploadRouter);
 
 export default router;

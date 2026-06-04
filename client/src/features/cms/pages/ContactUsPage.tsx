@@ -1,4 +1,3 @@
-import React from 'react';
 
 const ContactUs = () => {
   return (
@@ -109,7 +108,7 @@ const ContactUs = () => {
               </div>
               <div className="relative flex-grow">
                 <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2 uppercase" htmlFor="message">Your Message</label>
-                <textarea className="input-underline w-full font-body-lg text-body-lg resize-none h-[120px]" id="message" name="message" required rows="4"></textarea>
+                <textarea className="input-underline w-full font-body-lg text-body-lg resize-none h-[120px]" id="message" name="message" required rows={4}></textarea>
               </div>
               <button className="mt-auto w-full bg-primary-container text-[#fed65b] font-label-caps text-label-caps py-4 px-8 uppercase tracking-widest hover:bg-tertiary transition-colors duration-300 flex justify-center items-center gap-2 group cursor-pointer" type="submit">
                 Submit Inquiry

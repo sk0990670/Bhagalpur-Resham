@@ -58,8 +58,6 @@ const categorySchema = new Schema<ICategory>(
 );
 
 // ── Indexes ──────────────────────────────────────────────────
-// Primary lookup by slug (nav menus, URLs)
-categorySchema.index({ slug: 1 }, { unique: true });
 // Fetch all active categories for storefront
 categorySchema.index({ isActive: 1, sortOrder: 1 });
 // Hierarchical queries — get children of a parent

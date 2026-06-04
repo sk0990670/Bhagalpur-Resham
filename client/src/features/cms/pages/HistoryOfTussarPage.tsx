@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import tussarSilkWeavingAsset from '../../../assets/tussar_silk_weaving.png';
 

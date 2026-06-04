@@ -1,79 +1,115 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { productService } from '../../../shared/services/product.service';
+import { useWishlist } from '../../wishlist/useWishlist';
+import { useToast } from '../../../shared/hooks/useToast';
+import { ToastContainer } from '../../../shared/components/Toast';
 
-const products = [
-  {
-    id: 1,
-    title: 'Rajwaada Crimson Silk',
-    subtitle: 'Pure Bhagalpuri Tussar',
-    price: '₹14,500',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDX0UJAOT6kHZrLEyVtEUcwjzBLUMQJ4EwHmEaYn08S8PTNs4nE208sactDkWLqiuMFvhYN6UtCD9C1XH8fxtth3VHLfOLud8bpR96iOuT6CIEfin1mtRxbQhG6LzLQFj9xpw7PSJpq165Halanvvx3FrZt1lIYtEAJZP_uyH1u2Aygk0CLw0mtGfc6pPXBHFvZM_9zzRxkXRAmY1c0uFaJqH33VFFRv6r92o6-UqcIyQ4mm-XEI-PHRezsaBMQt86CVm2a9g6K64sO',
-    badge: 'verified', // Silk Mark
-  },
-  {
-    id: 2,
-    title: 'Swarna Matka Weave',
-    subtitle: 'Handloom Matka Silk',
-    price: '₹11,200',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDx5P2TjjBAtt9L-bNeMlJ7b2VVoFuINFmAWJVEixnUKSUNHXkBEx2RUQpt4VaNq4evbp0Z2faWKIb4XgRxjxQN6SHbj9pRiBUd31jeaJYGq27emxaqgPpzhB1ShtoeTKkSuSxGnpQyRe1x0vhgGx60xEjV4DN6qToHhkbJD1VZcXogrnOBIn7nTNlSqrwPsDVqqGIG6UsMUYzxDg1IhUlzjHCHm7Zw-u15Cxjwv9q8vPZPOoesot62XwVD1so6QLGouQLOYraD3wu6',
-  },
-  {
-    id: 3,
-    title: 'Neelam Indigo Drape',
-    subtitle: 'Classic Bhagalpuri',
-    price: '₹9,800',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBD06HVnezZT4EFbE2ntWZ2HYpBi-3XycaV639oSnoeYBT0IPuDltI1iyhcjX7ReJNE78B8SDLW8-XPTVCpSmDCikrZW99mtZbZ__2N0O3uHGXDEYqUbSEFluD4Ol4cCqCmVFl6vZ4OMkXQmYWEyp4tZ1yrMzuqOe6pcQhBbiCoPC1bnrCqzNBsIe3q0U0PzOBRJEMGBFaFM6sqjhM2OBO0y1URIzp5AShw_SDNNQMb6BIK_7aufBGJLzJBc43OzkPJRp09X5yAzz9U',
-    tag: 'NEW ARRIVAL'
-  },
-  {
-    id: 4,
-    title: 'Emerald Tussar Weave',
-    subtitle: 'Pure Bhagalpuri Tussar',
-    price: '₹13,500',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDX0UJAOT6kHZrLEyVtEUcwjzBLUMQJ4EwHmEaYn08S8PTNs4nE208sactDkWLqiuMFvhYN6UtCD9C1XH8fxtth3VHLfOLud8bpR96iOuT6CIEfin1mtRxbQhG6LzLQFj9xpw7PSJpq165Halanvvx3FrZt1lIYtEAJZP_uyH1u2Aygk0CLw0mtGfc6pPXBHFvZM_9zzRxkXRAmY1c0uFaJqH33VFFRv6r92o6-UqcIyQ4mm-XEI-PHRezsaBMQt86CVm2a9g6K64sO',
-  },
-  {
-    id: 5,
-    title: 'Champagne Matka Silk',
-    subtitle: 'Handloom Matka Silk',
-    price: '₹12,400',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDx5P2TjjBAtt9L-bNeMlJ7b2VVoFuINFmAWJVEixnUKSUNHXkBEx2RUQpt4VaNq4evbp0Z2faWKIb4XgRxjxQN6SHbj9pRiBUd31jeaJYGq27emxaqgPpzhB1ShtoeTKkSuSxGnpQyRe1x0vhgGx60xEjV4DN6qToHhkbJD1VZcXogrnOBIn7nTNlSqrwPsDVqqGIG6UsMUYzxDg1IhUlzjHCHm7Zw-u15Cxjwv9q8vPZPOoesot62XwVD1so6QLGouQLOYraD3wu6',
-    badge: 'verified'
-  },
-  {
-    id: 6,
-    title: 'Midnight Blue Classic',
-    subtitle: 'Classic Bhagalpuri',
-    price: '₹10,500',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBD06HVnezZT4EFbE2ntWZ2HYpBi-3XycaV639oSnoeYBT0IPuDltI1iyhcjX7ReJNE78B8SDLW8-XPTVCpSmDCikrZW99mtZbZ__2N0O3uHGXDEYqUbSEFluD4Ol4cCqCmVFl6vZ4OMkXQmYWEyp4tZ1yrMzuqOe6pcQhBbiCoPC1bnrCqzNBsIe3q0U0PzOBRJEMGBFaFM6sqjhM2OBO0y1URIzp5AShw_SDNNQMb6BIK_7aufBGJLzJBc43OzkPJRp09X5yAzz9U',
-  },
-  {
-    id: 7,
-    title: 'Ruby Red Traditional',
-    subtitle: 'Pure Bhagalpuri Tussar',
-    price: '₹15,200',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDX0UJAOT6kHZrLEyVtEUcwjzBLUMQJ4EwHmEaYn08S8PTNs4nE208sactDkWLqiuMFvhYN6UtCD9C1XH8fxtth3VHLfOLud8bpR96iOuT6CIEfin1mtRxbQhG6LzLQFj9xpw7PSJpq165Halanvvx3FrZt1lIYtEAJZP_uyH1u2Aygk0CLw0mtGfc6pPXBHFvZM_9zzRxkXRAmY1c0uFaJqH33VFFRv6r92o6-UqcIyQ4mm-XEI-PHRezsaBMQt86CVm2a9g6K64sO',
-    tag: 'BESTSELLER'
-  },
-  {
-    id: 8,
-    title: 'Ivory Gold Matka',
-    subtitle: 'Handloom Matka Silk',
-    price: '₹11,800',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDx5P2TjjBAtt9L-bNeMlJ7b2VVoFuINFmAWJVEixnUKSUNHXkBEx2RUQpt4VaNq4evbp0Z2faWKIb4XgRxjxQN6SHbj9pRiBUd31jeaJYGq27emxaqgPpzhB1ShtoeTKkSuSxGnpQyRe1x0vhgGx60xEjV4DN6qToHhkbJD1VZcXogrnOBIn7nTNlSqrwPsDVqqGIG6UsMUYzxDg1IhUlzjHCHm7Zw-u15Cxjwv9q8vPZPOoesot62XwVD1so6QLGouQLOYraD3wu6',
-  },
-  {
-    id: 9,
-    title: 'Sapphire Blue Drape',
-    subtitle: 'Classic Bhagalpuri',
-    price: '₹9,500',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBD06HVnezZT4EFbE2ntWZ2HYpBi-3XycaV639oSnoeYBT0IPuDltI1iyhcjX7ReJNE78B8SDLW8-XPTVCpSmDCikrZW99mtZbZ__2N0O3uHGXDEYqUbSEFluD4Ol4cCqCmVFl6vZ4OMkXQmYWEyp4tZ1yrMzuqOe6pcQhBbiCoPC1bnrCqzNBsIe3q0U0PzOBRJEMGBFaFM6sqjhM2OBO0y1URIzp5AShw_SDNNQMb6BIK_7aufBGJLzJBc43OzkPJRp09X5yAzz9U',
-    badge: 'verified'
-  }
+const COLOR_PALETTE = [
+  { name: 'Red', bg: 'bg-[#FF0000]' },
+  { name: 'Maroon', bg: 'bg-[#800000]' },
+  { name: 'Pink', bg: 'bg-[#FFC0CB]' },
+  { name: 'Peach', bg: 'bg-[#FFDAB9]' },
+  { name: 'Orange', bg: 'bg-[#FFA500]' },
+  { name: 'Mustard', bg: 'bg-[#FFDB58]' },
+  { name: 'Yellow', bg: 'bg-[#FFFF00]' },
+  { name: 'Gold', bg: 'bg-[#D4AF37]' },
+  { name: 'Beige', bg: 'bg-[#F5F5DC]' },
+  { name: 'Cream', bg: 'bg-[#FFFDD0]' },
+  { name: 'Off White', bg: 'bg-[#FAF9F6]' },
+  { name: 'White', bg: 'bg-[#FFFFFF]' },
+  { name: 'Black', bg: 'bg-[#000000]' },
+  { name: 'Grey', bg: 'bg-[#808080]' },
+  { name: 'Silver', bg: 'bg-[#C0C0C0]' },
+  { name: 'Brown', bg: 'bg-[#8B4513]' },
+  { name: 'Green', bg: 'bg-[#008000]' },
+  { name: 'Olive Green', bg: 'bg-[#808000]' },
+  { name: 'Mehendi Green', bg: 'bg-[#A0A53A]' },
+  { name: 'Mint Green', bg: 'bg-[#98FF98]' },
+  { name: 'Sea Green', bg: 'bg-[#2E8B57]' },
+  { name: 'Bottle Green', bg: 'bg-[#006A4E]' },
+  { name: 'Emerald Green', bg: 'bg-[#50C878]' },
+  { name: 'Blue', bg: 'bg-[#0000FF]' },
+  { name: 'Navy Blue', bg: 'bg-[#000080]' },
+  { name: 'Royal Blue', bg: 'bg-[#4169E1]' },
+  { name: 'Sky Blue', bg: 'bg-[#87CEEB]' },
+  { name: 'Turquoise Blue', bg: 'bg-[#00CED1]' },
+  { name: 'Teal Blue', bg: 'bg-[#008080]' },
+  { name: 'Purple', bg: 'bg-[#800080]' },
+  { name: 'Lavender', bg: 'bg-[#E6E6FA]' },
+  { name: 'Violet', bg: 'bg-[#EE82EE]' },
+  { name: 'Magenta', bg: 'bg-[#FF00FF]' },
+  { name: 'Wine', bg: 'bg-[#722F37]' },
+  { name: 'Rust', bg: 'bg-[#B7410E]' },
+  { name: 'Coral', bg: 'bg-[#FF7F50]' },
+  { name: 'Multicolor', bg: 'bg-gradient-to-tr from-red-500 via-green-500 to-blue-500' }
 ];
 
 const Collections = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    weaveType: [] as string[],
+    color: [] as string[],
+    occasion: [] as string[], // Using array for occasion too to allow multiple or deselection, though UI is currently radio
+  });
+  const [sort, setSort] = useState('newest');
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+
+  const { toasts, showToast, removeToast } = useToast();
+  const { isInWishlist, toggleItem } = useWishlist(showToast);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const params: any = {};
+        if (filters.weaveType.length > 0) params.weaveType = filters.weaveType.join(',');
+        if (filters.color.length > 0) params.color = filters.color.join(',');
+        if (filters.occasion.length > 0) params.occasion = filters.occasion.join(',');
+        if (sort !== 'newest') params.sort = sort;
+
+        const res = await productService.getProducts(params);
+        if (res.success && res.data) {
+          setProducts(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch products', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [filters, sort]);
+
+  const handleWeaveChange = (weave: string) => {
+    setFilters(prev => ({
+      ...prev,
+      weaveType: prev.weaveType.includes(weave) 
+        ? prev.weaveType.filter(w => w !== weave)
+        : [...prev.weaveType, weave]
+    }));
+  };
+
+  const handleColorChange = (color: string) => {
+    setFilters(prev => ({
+      ...prev,
+      color: prev.color.includes(color)
+        ? prev.color.filter(c => c !== color)
+        : [...prev.color, color]
+    }));
+  };
+
+  const handleOccasionChange = (occasion: string) => {
+    setFilters(prev => ({
+      ...prev,
+      // Radio button behavior but stored in array for API format
+      occasion: [occasion]
+    }));
+  };
+
   return (
+    <>
     <main className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
       {/* Hero Section */}
       <header className="mb-16 text-center">
@@ -100,16 +136,28 @@ const Collections = () => {
               <h3 className="font-body-lg text-body-lg text-on-surface mb-4">Weave Type</h3>
               <ul className="space-y-3">
                 <li className="flex items-center">
-                  <input className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-tussar" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-tussar">Tussar Silk</label>
+                  <input checked={filters.weaveType.includes("Pure Tussar Silk Weave")} onChange={() => handleWeaveChange("Pure Tussar Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-pure-tussar" type="checkbox" />
+                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-pure-tussar">Pure Tussar Silk Weave</label>
                 </li>
                 <li className="flex items-center">
-                  <input defaultChecked className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-bhagalpuri" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-bhagalpuri">Bhagalpuri</label>
+                  <input checked={filters.weaveType.includes("Ghicha Silk Weave")} onChange={() => handleWeaveChange("Ghicha Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-ghicha" type="checkbox" />
+                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-ghicha">Ghicha Silk Weave</label>
                 </li>
                 <li className="flex items-center">
-                  <input className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-matka" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-matka">Matka Silk</label>
+                  <input checked={filters.weaveType.includes("Matka Silk Weave")} onChange={() => handleWeaveChange("Matka Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-matka" type="checkbox" />
+                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-matka">Matka Silk Weave</label>
+                </li>
+                <li className="flex items-center">
+                  <input checked={filters.weaveType.includes("Dupion Silk Weave")} onChange={() => handleWeaveChange("Dupion Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-dupion" type="checkbox" />
+                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-dupion">Dupion Silk Weave</label>
+                </li>
+                <li className="flex items-center">
+                  <input checked={filters.weaveType.includes("Cotton-Silk Bhagalpuri Weave")} onChange={() => handleWeaveChange("Cotton-Silk Bhagalpuri Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-cotton-silk" type="checkbox" />
+                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-cotton-silk">Cotton-Silk Bhagalpuri Weave</label>
+                </li>
+                <li className="flex items-center">
+                  <input checked={filters.weaveType.includes("Zari Bhagalpuri Weave")} onChange={() => handleWeaveChange("Zari Bhagalpuri Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-zari" type="checkbox" />
+                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-zari">Zari Bhagalpuri Weave</label>
                 </li>
               </ul>
             </div>
@@ -117,32 +165,27 @@ const Collections = () => {
             {/* Color */}
             <div className="mb-8">
               <h3 className="font-body-lg text-body-lg text-on-surface mb-4">Color</h3>
-              <ul className="space-y-3">
-                <li className="flex items-center">
-                  <input className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="color-red" type="checkbox" />
-                  <label className="ml-3 flex items-center font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="color-red">
-                    <span className="w-3 h-3 rounded-full bg-[#8B0000] inline-block mr-2"></span> Red
-                  </label>
-                </li>
-                <li className="flex items-center">
-                  <input className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="color-gold" type="checkbox" />
-                  <label className="ml-3 flex items-center font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="color-gold">
-                    <span className="w-3 h-3 rounded-full bg-[#D4AF37] inline-block mr-2"></span> Gold
-                  </label>
-                </li>
-                <li className="flex items-center">
-                  <input className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="color-cream" type="checkbox" />
-                  <label className="ml-3 flex items-center font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="color-cream">
-                    <span className="w-3 h-3 rounded-full bg-[#FFF8E7] border border-outline-variant inline-block mr-2"></span> Cream
-                  </label>
-                </li>
-                <li className="flex items-center">
-                  <input className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="color-multi" type="checkbox" />
-                  <label className="ml-3 flex items-center font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="color-multi">
-                    <span className="w-3 h-3 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 inline-block mr-2"></span> Multicolored
-                  </label>
-                </li>
-              </ul>
+              <div className="flex flex-wrap gap-3">
+                {COLOR_PALETTE.map((color) => (
+                  <div key={color.name} className="relative group flex items-center justify-center">
+                    <input 
+                      className="peer sr-only" 
+                      id={`color-${color.name.toLowerCase().replace(/\s+/g, '-')}`} 
+                      type="checkbox" 
+                      checked={filters.color.includes(color.name)}
+                      onChange={() => handleColorChange(color.name)}
+                    />
+                    <label 
+                      htmlFor={`color-${color.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      className={`w-7 h-7 rounded-full cursor-pointer border border-outline-variant/30 ${color.bg} peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-primary peer-checked:ring-offset-surface transition-all`}
+                      aria-label={color.name}
+                    ></label>
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-[10px] font-label-caps px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10 border border-outline-variant/20 shadow-sm">
+                      {color.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Occasion */}
@@ -150,15 +193,15 @@ const Collections = () => {
               <h3 className="font-body-lg text-body-lg text-on-surface mb-4">Occasion</h3>
               <ul className="space-y-3">
                 <li className="flex items-center">
-                  <input className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-wedding" name="occasion" type="radio" />
+                  <input checked={filters.occasion.includes("Wedding")} onChange={() => handleOccasionChange("Wedding")} className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-wedding" name="occasion" type="radio" />
                   <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="occ-wedding">Wedding</label>
                 </li>
                 <li className="flex items-center">
-                  <input defaultChecked className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-festive" name="occasion" type="radio" />
+                  <input checked={filters.occasion.includes("Festive")} onChange={() => handleOccasionChange("Festive")} className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-festive" name="occasion" type="radio" />
                   <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="occ-festive">Festive</label>
                 </li>
                 <li className="flex items-center">
-                  <input className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-casual" name="occasion" type="radio" />
+                  <input checked={filters.occasion.includes("Casual")} onChange={() => handleOccasionChange("Casual")} className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-casual" name="occasion" type="radio" />
                   <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="occ-casual">Casual</label>
                 </li>
               </ul>
@@ -169,58 +212,124 @@ const Collections = () => {
         {/* Product Grid */}
         <section className="w-full lg:w-3/4">
           <div className="flex justify-between items-center mb-6">
-            <span className="font-body-md text-body-md text-on-surface-variant">Showing 9 of 48 items</span>
-            <div className="flex items-center space-x-2 border-b border-primary/20 pb-1">
+            <span className="font-body-md text-body-md text-on-surface-variant">Showing {products.length} items</span>
+            <div className="relative flex items-center space-x-2 border-b border-primary/20 pb-1 z-20">
               <span className="font-label-caps text-label-caps text-on-surface">Sort By:</span>
-              <select className="bg-transparent font-body-md text-body-md text-primary border-none focus:ring-0 p-0 pr-4 cursor-pointer outline-none">
-                <option>New Arrivals</option>
-                <option>Price: High to Low</option>
-                <option>Price: Low to High</option>
-              </select>
+              <div 
+                className="flex items-center gap-1 cursor-pointer"
+                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+              >
+                <span className="font-body-md text-body-md text-primary">
+                  {sort === 'authentic' && 'Authentic Collection'}
+                  {sort === 'best_seller' && 'Best Sellers'}
+                  {sort === 'newest' && 'New Arrivals'}
+                  {sort === 'price_desc' && 'Price: High to Low'}
+                  {sort === 'price_asc' && 'Price: Low to High'}
+                </span>
+                <svg className={`w-4 h-4 text-primary transition-transform ${isSortDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+              
+              {isSortDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsSortDropdownOpen(false)}></div>
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-surface border border-outline-variant/50 rounded shadow-lg z-20 overflow-hidden">
+                    {[
+                      { value: 'authentic', label: 'Authentic Collection' },
+                      { value: 'best_seller', label: 'Best Sellers' },
+                      { value: 'newest', label: 'New Arrivals' },
+                      { value: 'price_desc', label: 'Price: High to Low' },
+                      { value: 'price_asc', label: 'Price: Low to High' }
+                    ].map(option => (
+                      <div 
+                        key={option.value}
+                        className={`px-4 py-3 cursor-pointer hover:bg-surface-variant transition-colors font-body-md text-body-md ${sort === option.value ? 'bg-surface-container text-primary font-semibold' : 'text-on-surface'}`}
+                        onClick={() => {
+                          setSort(option.value);
+                          setIsSortDropdownOpen(false);
+                        }}
+                      >
+                        {option.label}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           {/* Changed gap from gap-8 to gap-6 to tighten the 3x3 grid slightly */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <Link key={product.id} to={`/product/${product.id}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">
-                {/* Changed aspect-[3/4] to aspect-[4/5] to make the image slightly less tall and overall smaller */}
-                <div className="relative overflow-hidden aspect-[4/5] mithila-border p-1 bg-surface-container-low mb-3">
-                  <img 
-                    alt={product.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                    src={product.image}
-                  />
-                  {/* Artisan Badge */}
-                  {product.badge && (
-                    <div className="absolute top-3 right-3 bg-surface/90 rounded-full p-1.5 backdrop-blur-sm shadow-sm" title="Silk Mark Certified">
-                      <span className="material-symbols-outlined text-secondary" style={{ fontSize: '14px' }}>{product.badge}</span>
+            {isLoading ? (
+              <div className="col-span-full py-12 text-center text-on-surface-variant font-body-lg">
+                Loading collections...
+              </div>
+            ) : products.length === 0 ? (
+              <div className="col-span-full py-12 text-center text-on-surface-variant font-body-lg">
+                No products found in this collection.
+              </div>
+            ) : products.map((product) => {
+              const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+              
+              return (
+                <Link key={product._id} to={`/product/${product.sku}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">
+                  <div className="relative overflow-hidden aspect-[4/5] mithila-border p-1 bg-surface-container-low mb-3">
+                    {primaryImage ? (
+                      <img 
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                        src={primaryImage.url}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-surface-variant flex items-center justify-center">
+                        <span className="material-symbols-outlined text-outline">image</span>
+                      </div>
+                    )}
+                    {/* Artisan Badge (Authentic) */}
+                    {product.badge === 'Authentic Collection' && (
+                      <div className="absolute top-3 right-3 bg-surface/90 rounded-full p-1.5 backdrop-blur-sm shadow-sm" title="Silk Mark Certified">
+                        <span className="material-symbols-outlined text-secondary" style={{ fontSize: '14px' }}>verified</span>
+                      </div>
+                    )}
+                    {/* Tag (New Arrival / Best Seller) */}
+                    {(product.badge === 'New Arrival' || product.badge === 'Best Seller') && (
+                      <div className="absolute top-3 left-3 bg-surface/90 text-primary font-label-caps text-[9px] px-2 py-1 border border-primary/20 uppercase">
+                        {product.badge}
+                      </div>
+                    )}
+                    {/* Quick View Overlay */}
+                    <div className="absolute inset-0 bg-surface/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                      <button className="bg-primary/90 text-on-primary font-label-caps text-label-caps px-4 py-2 text-xs tracking-widest hover:bg-primary transition-colors cursor-pointer">QUICK VIEW</button>
                     </div>
-                  )}
-                  {/* Tag */}
-                  {product.tag && (
-                    <div className="absolute top-3 left-3 bg-surface/90 text-primary font-label-caps text-[9px] px-2 py-1 border border-primary/20">
-                      {product.tag}
+                  </div>
+                  <div className="text-center px-1">
+                    <h3 className="font-headline-md text-headline-md text-primary text-lg mb-1 truncate">{product.name}</h3>
+                    <p className="font-body-md text-body-md text-on-surface-variant mb-2 text-sm">{product.weaveType}</p>
+                    <div className="flex justify-between items-center border-t border-outline-variant/30 pt-2 mt-2">
+                      <span className="font-body-lg text-body-lg font-semibold text-on-surface text-base">₹ {product.price?.toLocaleString()}</span>
+                      <button
+                        aria-label={isInWishlist(product._id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                        className="cursor-pointer transition-transform hover:scale-110 active:scale-125 focus:outline-none"
+                        onClick={(e) => { e.preventDefault(); toggleItem(product._id, product.name); }}
+                        style={{ lineHeight: 1 }}
+                      >
+                        <span
+                          className="material-symbols-outlined transition-all duration-200"
+                          style={{
+                            fontSize: '22px',
+                            fontVariationSettings: isInWishlist(product._id) ? "'FILL' 1" : "'FILL' 0",
+                            color: isInWishlist(product._id) ? '#C41E3A' : '#6B7280',
+                          }}
+                        >
+                          favorite
+                        </span>
+                      </button>
                     </div>
-                  )}
-                  {/* Quick View Overlay */}
-                  <div className="absolute inset-0 bg-surface/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                    <button className="bg-primary/90 text-on-primary font-label-caps text-label-caps px-4 py-2 text-xs tracking-widest hover:bg-primary transition-colors cursor-pointer">QUICK VIEW</button>
                   </div>
-                </div>
-                <div className="text-center px-1">
-                  {/* Reduced title text size from text-xl to text-lg */}
-                  <h3 className="font-headline-md text-headline-md text-primary text-lg mb-1 truncate">{product.title}</h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant mb-2 text-sm">{product.subtitle}</p>
-                  <div className="flex justify-between items-center border-t border-outline-variant/30 pt-2 mt-2">
-                    <span className="font-body-lg text-body-lg font-semibold text-on-surface text-base">{product.price}</span>
-                    <button aria-label="Add to wishlist" className="text-primary hover:text-secondary transition-colors cursor-pointer">
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>favorite_border</span>
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Pagination */}
@@ -239,6 +348,8 @@ const Collections = () => {
         </section>
       </div>
     </main>
+    <ToastContainer toasts={toasts} onRemove={removeToast} />
+  </>
   );
 };
 

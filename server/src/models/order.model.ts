@@ -61,6 +61,7 @@ export interface IShippingAddress {
   phone: string;
   addressLine1: string;
   addressLine2?: string;
+  locality: string;
   city: string;
   state: string;
   pincode: string;
@@ -72,16 +73,19 @@ export interface IOrderPricing {
   couponDiscount: number;
   couponCode?: string;
   shipping: number;
+  shippingPaid: boolean;
+  codAmount?: number;
   tax: number;
   total: number;
 }
 
 export interface IPaymentInfo {
-  method: 'razorpay' | 'cod' | 'bank_transfer';
+  method: 'razorpay' | 'cod' | 'bank_transfer' | 'upi' | 'card' | 'netbanking';
   status: PaymentStatus;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;
+  shippingPaymentId?: string;
   paidAt?: Date;
   refundId?: string;
   refundedAt?: Date;
@@ -99,6 +103,7 @@ export interface IOrder extends Document {
   user: mongoose.Types.ObjectId;
   items: IOrderItem[];
   shippingAddress: IShippingAddress;
+  shippingMethod?: string;
   pricing: IOrderPricing;
   paymentInfo: IPaymentInfo;
   status: OrderStatus;
@@ -135,6 +140,7 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
     phone: { type: String, required: true },
     addressLine1: { type: String, required: true },
     addressLine2: { type: String },
+    locality: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
     pincode: { type: String, required: true },
@@ -149,6 +155,8 @@ const pricingSchema = new Schema<IOrderPricing>(
     couponDiscount: { type: Number, default: 0 },
     couponCode: { type: String },
     shipping: { type: Number, default: 0 },
+    shippingPaid: { type: Boolean, default: false },
+    codAmount: { type: Number },
     tax: { type: Number, default: 0 },
     total: { type: Number, required: true },
   },
@@ -159,7 +167,7 @@ const paymentInfoSchema = new Schema<IPaymentInfo>(
   {
     method: {
       type: String,
-      enum: ['razorpay', 'cod', 'bank_transfer'],
+      enum: ['razorpay', 'cod', 'bank_transfer', 'upi', 'card', 'netbanking'],
       required: true,
     },
     status: {
@@ -170,6 +178,7 @@ const paymentInfoSchema = new Schema<IPaymentInfo>(
     razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },
     razorpaySignature: { type: String },
+    shippingPaymentId: { type: String },
     paidAt: { type: Date },
     refundId: { type: String },
     refundedAt: { type: Date },
@@ -208,6 +217,7 @@ const orderSchema = new Schema<IOrder>(
       },
     },
     shippingAddress: { type: shippingAddressSchema, required: true },
+    shippingMethod: { type: String },
     pricing: { type: pricingSchema, required: true },
     paymentInfo: { type: paymentInfoSchema, required: true },
     status: {
@@ -237,8 +247,6 @@ const orderSchema = new Schema<IOrder>(
 orderSchema.index({ user: 1, createdAt: -1 });
 // Admin order management by status
 orderSchema.index({ status: 1, createdAt: -1 });
-// Human-readable order ID lookup
-orderSchema.index({ orderId: 1 }, { unique: true });
 // Payment lookup (Razorpay webhook)
 orderSchema.index({ 'paymentInfo.razorpayOrderId': 1 }, { sparse: true });
 // Revenue analytics by date range

@@ -70,8 +70,6 @@ wishlistSchema.virtual('totalItems').get(function () {
 });
 
 // ── Indexes ──────────────────────────────────────────────────
-// Primary lookup — one wishlist per user
-wishlistSchema.index({ user: 1 }, { unique: true });
 // Check if a specific product is in a user's wishlist
 wishlistSchema.index({ user: 1, 'items.product': 1 });
 // "Customers who wishlisted this" — product popularity signal

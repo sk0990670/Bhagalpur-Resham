@@ -9,6 +9,11 @@ class ProductController {
     res.json(ApiResponse.ok('Products fetched', result.data, result.meta));
   });
 
+  listAllProductsForAdmin = asyncHandler(async (req: Request, res: Response) => {
+    const result = await productService.adminListProducts(req);
+    res.json(ApiResponse.ok('All products fetched', result.data, result.meta));
+  });
+
   getFeatured = asyncHandler(async (_req: Request, res: Response) => {
     const products = await productService.getFeaturedProducts();
     res.json(ApiResponse.ok('Featured products fetched', products));
@@ -16,6 +21,11 @@ class ProductController {
 
   getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
     const product = await productService.getProductBySlug(req.params.slug as string);
+    res.json(ApiResponse.ok('Product fetched', product));
+  });
+
+  getProductBySku = asyncHandler(async (req: Request, res: Response) => {
+    const product = await productService.getProductBySku(req.params.sku as string);
     res.json(ApiResponse.ok('Product fetched', product));
   });
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import closeUpOfAHandloomWeaverSHandsWorkingOnASilkSareeTraditionalAsset from '../../../assets/close_up_of_a_handloom_weaver_s_hands_working_on_a_silk_saree_traditional.png';
 import biharMapAsset from '../../../assets/bihar_map.png';
 

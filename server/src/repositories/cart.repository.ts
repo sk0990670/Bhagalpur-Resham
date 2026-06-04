@@ -5,7 +5,7 @@ export class CartRepository extends BaseRepository<ICart> {
   constructor() { super(Cart); }
 
   async findByUser(userId: string) {
-    return Cart.findOne({ user: userId }).populate('items.product', 'name images price discountPrice stock isActive').exec();
+    return Cart.findOne({ user: userId }).populate('items.product').exec();
   }
 
   async upsertCart(userId: string, data: Partial<ICart>) {

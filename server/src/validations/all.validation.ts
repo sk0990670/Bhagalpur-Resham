@@ -15,12 +15,19 @@ export const createOrderSchema = z.object({
   shippingAddress: z.object({
     name: z.string().min(2), phone: z.string().min(10),
     addressLine1: z.string().min(5), addressLine2: z.string().optional(),
+    locality: z.string().min(2),
     city: z.string().min(2), state: z.string().min(2),
     pincode: z.string().regex(/^\d{6}$/),
   }),
-  paymentMethod: z.enum(['razorpay', 'cod', 'bank_transfer']),
+  paymentMethod: z.enum(['razorpay', 'cod', 'bank_transfer', 'upi', 'card', 'netbanking']),
+  shippingMethod: z.enum(['standard', 'express']).default('standard'),
   couponCode: z.string().optional(),
   notes: z.string().max(500).optional(),
+  razorpay: z.object({
+    razorpayOrderId: z.string(),
+    razorpayPaymentId: z.string(),
+    razorpaySignature: z.string()
+  }).optional()
 });
 
 export const updateOrderStatusSchema = z.object({

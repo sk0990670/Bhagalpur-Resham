@@ -41,6 +41,7 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 export const PAYMENT_STATUS = {
   PENDING: 'pending',
   PAID: 'paid',
+  SHIPPING_PAID: 'shipping_paid',
   FAILED: 'failed',
   REFUNDED: 'refunded',
 } as const;
@@ -64,9 +65,27 @@ export const DISCOUNT_TYPE = {
 
 export type DiscountType = (typeof DISCOUNT_TYPE)[keyof typeof DISCOUNT_TYPE];
 
-/** Silk types specific to Bhagalpur products */
-export const SILK_TYPES = ['Tussar', 'Mulberry', 'Eri', 'Muga', 'Blended'] as const;
-export type SilkType = (typeof SILK_TYPES)[number];
+/** Weave types specific to Bhagalpur products */
+export const WEAVE_TYPES = [
+  'Pure Tussar Silk Weave',
+  'Ghicha Silk Weave',
+  'Matka Silk Weave',
+  'Dupion Silk Weave',
+  'Cotton-Silk Bhagalpuri Weave',
+  'Zari Bhagalpuri Weave'
+] as const;
+export type WeaveType = (typeof WEAVE_TYPES)[number];
+
+/** Valid color palette */
+export const COLOR_TYPES = [
+  'Red', 'Maroon', 'Pink', 'Peach', 'Orange', 'Mustard', 'Yellow', 'Gold',
+  'Beige', 'Cream', 'Off White', 'White', 'Black', 'Grey', 'Silver', 'Brown',
+  'Green', 'Olive Green', 'Mehendi Green', 'Mint Green', 'Sea Green',
+  'Bottle Green', 'Emerald Green', 'Blue', 'Navy Blue', 'Royal Blue',
+  'Sky Blue', 'Turquoise Blue', 'Teal Blue', 'Purple', 'Lavender',
+  'Violet', 'Magenta', 'Wine', 'Rust', 'Coral', 'Multicolor'
+] as const;
+export type ColorType = (typeof COLOR_TYPES)[number];
 
 /** CMS content types */
 export const CMS_TYPES = {

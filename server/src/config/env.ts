@@ -9,6 +9,10 @@ const requiredEnvVars = [
   'JWT_REFRESH_SECRET',
   'GOOGLE_CLIENT_ID',
   'GOOGLE_CLIENT_SECRET',
+  'ADMIN_EMAIL',
+  'ADMIN_PASSWORD',
+  'RAZORPAY_KEY_ID',
+  'RAZORPAY_KEY_SECRET',
 ];
 
 requiredEnvVars.forEach((envVar) => {
@@ -60,8 +64,8 @@ export const env = {
   },
 
   admin: {
-    email: process.env.ADMIN_EMAIL || 'sk0990670@gmail.com',
-    password: process.env.ADMIN_PASSWORD || '91Saymyname',
+    email: process.env.ADMIN_EMAIL as string,
+    password: process.env.ADMIN_PASSWORD as string,
   },
 
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -70,4 +74,6 @@ export const env = {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   },
+
+  valkeyUrl: process.env.VALKEY_URL as string,
 } as const;

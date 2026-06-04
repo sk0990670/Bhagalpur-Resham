@@ -1,11 +1,12 @@
 import { z } from 'zod';
-import { SILK_TYPES } from '../utils/constants';
+import { WEAVE_TYPES, COLOR_TYPES } from '../utils/constants';
 
 const productImageSchema = z.object({
   url: z.string().url(),
   publicId: z.string(),
   alt: z.string().optional(),
   isPrimary: z.boolean().default(false),
+  shotType: z.enum(['full_body', 'close_up', 'micro']).optional(),
 });
 
 export const createProductSchema = z.object({
@@ -16,24 +17,41 @@ export const createProductSchema = z.object({
   price: z.number().positive(),
   discountPrice: z.number().positive().optional(),
   stock: z.number().int().min(0),
-  category: z.string().min(24).max(24),
+  images: z.array(productImageSchema).optional(), // optional if using tempImages
+  tempImages: z.array(z.object({
+    tempId: z.string(),
+    shotType: z.enum(['full_body', 'close_up', 'micro'])
+  })).length(3, 'Exactly 3 temporary images are required').optional(),
   tags: z.array(z.string()).optional(),
-  silkType: z.enum(SILK_TYPES).optional(),
+  weaveType: z.enum(WEAVE_TYPES).optional(),
   weight: z.number().positive().optional(),
   isFeatured: z.boolean().default(false),
+  isActive: z.boolean().optional(),
   careInstructions: z.string().optional(),
+  badge: z.enum(['Normal', 'Authentic Collection', 'New Arrival', 'Best Seller']).optional(),
   gstPercent: z.number().min(0).max(28).optional(),
-  attributes: z.record(z.string(), z.string()).optional(),
+  attributes: z.object({
+    color: z.enum(COLOR_TYPES).optional(),
+    occasion: z.string().optional()
+  }).catchall(z.string()).optional(),
 });
 
-export const updateProductSchema = createProductSchema.partial();
+export const updateProductSchema = createProductSchema.partial().extend({
+  imageUpdates: z.array(z.object({
+    type: z.enum(['keep', 'new']),
+    publicId: z.string().optional(),
+    tempId: z.string().optional(),
+    shotType: z.enum(['full_body', 'close_up', 'micro'])
+  })).optional()
+});
 
 export const productQuerySchema = z.object({
   page: z.string().optional(),
   limit: z.string().optional(),
   search: z.string().optional(),
-  category: z.string().optional(),
-  silkType: z.enum(SILK_TYPES).optional(),
+  weaveType: z.string().optional(), // Now supports comma-separated values
+  color: z.string().optional(), // Supports comma-separated values
+  occasion: z.string().optional(), // Supports comma-separated values
   minPrice: z.string().optional(),
   maxPrice: z.string().optional(),
   minRating: z.string().optional(),

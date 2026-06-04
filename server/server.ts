@@ -4,6 +4,9 @@ import { connectDB, disconnectDB } from './src/config/db';
 import { env } from './src/config/env';
 import { logger } from './src/config/logger';
 
+// Initialize background workers
+import './src/workers/product.worker';
+
 const startServer = async (): Promise<void> => {
   // Connect to MongoDB first
   await connectDB();

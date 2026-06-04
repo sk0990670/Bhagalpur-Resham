@@ -24,11 +24,7 @@ import { createProductSchema, updateProductSchema, productQuerySchema } from '..
  *         schema: { type: string }
  *         description: Full-text search across name, description, tags
  *       - in: query
- *         name: category
- *         schema: { type: string }
- *         description: Filter by category ID
- *       - in: query
- *         name: silkType
+ *         name: weaveType
  *         schema: { type: string, enum: [Tussar, Mulberry, Eri, Muga, Blended] }
  *       - in: query
  *         name: minPrice
@@ -58,9 +54,14 @@ const router = Router();
 router.get('/', validate(productQuerySchema, 'query'), productController.listProducts);
 router.get('/featured', productController.getFeatured);
 router.get('/slug/:slug', productController.getProductBySlug);
-router.get('/:id', productController.getProductById);
+router.get('/sku/:sku', productController.getProductBySku);
 
 // Admin routes
+router.get('/all', authenticate, authorize('admin', 'superadmin'), productController.listAllProductsForAdmin);
+
+router.get('/:id', productController.getProductById);
+
+
 router.post('/', authenticate, authorize('admin', 'superadmin'), validate(createProductSchema), productController.createProduct);
 router.patch('/:id', authenticate, authorize('admin', 'superadmin'), validate(updateProductSchema), productController.updateProduct);
 router.delete('/:id', authenticate, authorize('admin', 'superadmin'), productController.deleteProduct);

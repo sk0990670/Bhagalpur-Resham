@@ -23,7 +23,13 @@ const createApp = (): Application => {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.clientUrl,
+      origin: (origin, callback) => {
+        if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+          callback(null, true);
+        } else {
+          callback(null, env.clientUrl);
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
