@@ -11,9 +11,9 @@ class ProductService {
     const pagination = getPaginationOptions(req);
     const { search, weaveType, color, occasion, minPrice, maxPrice, minRating, isFeatured, inStock, sort } = req.query as any;
 
-    if (search) return productRepository.textSearch(search, pagination);
-
     const filter: Record<string, unknown> = {};
+    
+    if (search) filter.$text = { $search: search };
     if (weaveType) filter.weaveType = { $in: weaveType.split(',') };
     if (color) filter['attributes.color'] = { $in: color.split(',') };
     if (occasion) filter['attributes.occasion'] = { $in: occasion.split(',') };
@@ -33,7 +33,11 @@ class ProductService {
       price_asc: { price: 1 }, price_desc: { price: -1 },
       rating_desc: { avgRating: -1 }, newest: { createdAt: -1 }, popular: { numReviews: -1 },
     };
-    const sortObj = sortMap[sort as string] ?? { createdAt: -1 };
+    
+    // Sort by text relevance if searching and no explicit sort provided
+    const sortObj = search && (!sort || sort === 'newest')
+      ? { score: { $meta: 'textScore' } as any }
+      : (sortMap[sort as string] ?? { createdAt: -1 });
 
     return productRepository.findForStorefront({ filter, pagination, sort: sortObj });
   }

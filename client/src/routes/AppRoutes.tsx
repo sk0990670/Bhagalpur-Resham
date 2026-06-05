@@ -42,6 +42,8 @@ import MithilaArtistryPage from '../features/cms/pages/MithilaArtistryPage';
 import ReturnPolicyPage from '../features/cms/pages/ReturnPolicyPage';
 import ShippingPolicyPage from '../features/cms/pages/ShippingPolicyPage';
 import SilkMarkPage from '../features/cms/pages/SilkMarkPage';
+import StoryPage from '../features/cms/pages/StoryPage';
+import PrivacyPolicyPage from '../features/cms/pages/PrivacyPolicyPage';
 
 // Admin
 import AdminLoginPage from '../features/admin/pages/AdminLoginPage';
@@ -54,6 +56,7 @@ import CouponManagementPage from '../features/admin/pages/CouponManagementPage';
 import ReviewModerationPage from '../features/admin/pages/ReviewModerationPage';
 import AnalyticsPage from '../features/admin/pages/AnalyticsPage';
 import ContentManagementPage from '../features/admin/pages/ContentManagementPage';
+import ArtisanNetworkPage from '../features/admin/pages/ArtisanNetworkPage';
 
 const AppRoutes = () => {
   return (
@@ -72,7 +75,8 @@ const AppRoutes = () => {
           <Route path="dashboard" element={<CustomerDashboardPage />} />
           <Route path="order-history" element={<OrderHistoryPage />} />
           <Route path="wishlist" element={<WishlistPage />} />
-          <Route path="order-tracking" element={<OrderTrackingPage />} />
+          <Route path="track-order" element={<Navigate to="/order-history" replace />} />
+          <Route path="track-order/:orderId" element={<OrderTrackingPage />} />
           <Route path="support" element={<CustomerSupportPage />} />
           <Route path="artisan-credits" element={<ArtisanCreditsPage />} />
         </Route>
@@ -92,6 +96,8 @@ const AppRoutes = () => {
         <Route path="history-of-tussar" element={<HistoryOfTussarPage />} />
         <Route path="mithila-artistry" element={<MithilaArtistryPage />} />
         <Route path="silk-mark" element={<SilkMarkPage />} />
+        <Route path="story" element={<StoryPage />} />
+        <Route path="privacy" element={<PrivacyPolicyPage />} />
       </Route>
       
       {/* Admin Routes (Without Main Layout for now until AdminLayout is extracted) */}
@@ -110,6 +116,7 @@ const AppRoutes = () => {
         <Route path="/admin/reviews" element={<ReviewModerationPage />} />
         <Route path="/admin/analytics" element={<AnalyticsPage />} />
         <Route path="/admin/content" element={<ContentManagementPage />} />
+        <Route path="/admin/artisans" element={<ArtisanNetworkPage />} />
       </Route>
     </Routes>
   );

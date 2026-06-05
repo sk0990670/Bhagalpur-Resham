@@ -185,7 +185,7 @@ const Layout = () => {
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/returns">Return & Refund Policy</Link></li>
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/shipping">Shipping Policy</Link></li>
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/faq">FAQ</Link></li>
-              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/">Privacy Policy</Link></li>
+              <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/privacy">Privacy Policy</Link></li>
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/contact">Contact Us</Link></li>
             </ul>
           </div>
@@ -193,12 +193,16 @@ const Layout = () => {
         <div className="border-t border-outline-variant/20 px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <span className="font-body-md text-body-md text-on-surface-variant/70 text-sm">© 2024 Bhagalpur Resham. Hand-woven in Bihar, India.</span>
           <div className="flex gap-4">
-            <a aria-label="Instagram" className="text-on-surface-variant/70 hover:text-primary transition-colors" href="https://www.instagram.com/bhagalpurresham" target="_blank" rel="noopener noreferrer">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>photo_camera</span>
-            </a>
-            <a aria-label="Facebook" className="text-on-surface-variant/70 hover:text-primary transition-colors" href="https://www.facebook.com/profile.php?id=61590607709758" target="_blank" rel="noopener noreferrer">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>public</span>
-            </a>
+            {import.meta.env.VITE_INSTAGRAM_URL && (
+              <a aria-label="Instagram" className="text-on-surface-variant/70 hover:text-primary transition-colors" href={import.meta.env.VITE_INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>photo_camera</span>
+              </a>
+            )}
+            {import.meta.env.VITE_FACEBOOK_URL && (
+              <a aria-label="Facebook" className="text-on-surface-variant/70 hover:text-primary transition-colors" href={import.meta.env.VITE_FACEBOOK_URL} target="_blank" rel="noopener noreferrer">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>public</span>
+              </a>
+            )}
           </div>
         </div>
       </footer>

@@ -92,6 +92,8 @@ export interface IUser extends Document {
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
+  expertise?: string;
+  location?: string;
   // Methods
   comparePassword(candidatePassword: string): Promise<boolean>;
   toSafeObject(): Omit<IUser, 'password' | 'refreshTokens' | 'passwordResetToken' | 'passwordResetExpires'>;
@@ -156,6 +158,8 @@ const userSchema = new Schema<IUser>(
     passwordResetExpires: { type: Date, select: false },
     refreshTokens: { type: [String], select: false, default: [] },
     lastLogin: { type: Date },
+    expertise: { type: String }, // For artisans
+    location: { type: String },  // For artisans
   },
   {
     timestamps: true,

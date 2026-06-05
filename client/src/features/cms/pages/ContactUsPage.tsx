@@ -1,5 +1,35 @@
+import React, { useState } from 'react';
+import api from '../../../shared/services/api';
+import artisanWeavingImg from '../../../assets/artisan_weaving_loom.png';
 
 const ContactUs = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: 'Bespoke Commission',
+    message: ''
+  });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    try {
+      await api.post('/contact', formData);
+      setStatus('success');
+      setFormData({ name: '', email: '', subject: 'Bespoke Commission', message: '' });
+      setTimeout(() => setStatus('idle'), 5000);
+    } catch (error) {
+      console.error('Failed to submit inquiry:', error);
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 5000);
+    }
+  };
   return (
     <main className="flex-grow pt-12 pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
       {/* Header Section */}
@@ -29,21 +59,21 @@ const ContactUs = () => {
                 <span className="material-symbols-outlined text-secondary text-2xl mt-1" style={{ fontVariationSettings: "'FILL' 0" }}>call</span>
                 <div>
                   <h3 className="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Direct Line</h3>
-                  <p className="font-body-lg text-body-lg text-on-surface">+91 98765 43210</p>
+                  <p className="font-body-lg text-body-lg text-on-surface">+91 {import.meta.env.VITE_SUPPORT_PHONE}</p>
                 </div>
               </li>
               <li className="flex items-start gap-4">
                 <span className="material-symbols-outlined text-secondary text-2xl mt-1" style={{ fontVariationSettings: "'FILL' 0" }}>mail</span>
                 <div>
                   <h3 className="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Electronic Mail</h3>
-                  <p className="font-body-lg text-body-lg text-on-surface">heritage@bhagalpurresham.com</p>
+                  <p className="font-body-lg text-body-lg text-on-surface">{import.meta.env.VITE_CONTACT_EMAIL}</p>
                 </div>
               </li>
               <li className="flex items-start gap-4">
                 <span className="material-symbols-outlined text-secondary text-2xl mt-1" style={{ fontVariationSettings: "'FILL' 0" }}>chat</span>
                 <div>
                   <h3 className="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">WhatsApp Boutique</h3>
-                  <a className="font-body-lg text-body-lg text-primary border-b border-primary hover:text-secondary transition-colors inline-block mt-1" href="#">Message an Artisan</a>
+                  <a className="font-body-lg text-body-lg text-primary border-b border-primary hover:text-secondary transition-colors inline-block mt-1" href={`https://wa.me/91${import.meta.env.VITE_WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">Message an Artisan</a>
                 </div>
               </li>
             </ul>
@@ -60,7 +90,7 @@ const ContactUs = () => {
             <img 
               alt="Artisan weaving" 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-              src="https://lh3.googleusercontent.com/aida/ADBb0ujYPxM8nyMw_XFhHqXgpKCItH69LUL2ZBrp3Mylq-0SfLNmzPzvVSJ4iwnpit19hYfiNwYYeiQdxIGlNft_DKiiDJMOBtW0xaklF2NzvbEnYzEPMTHAzHV5HQHL0kpr96VielaxFfj3N9aIB_Jm3Tcvt3mk2Mxk1JY4fxkgAZpYNcr6ICyo3MbXRKR4VE-XtQREW0silpYg-IQRTVYrBVMMfvr4Bp1kKKdWmaGGLYEN9qI2IEA8x6dUrbwX"
+              src={artisanWeavingImg}
             />
           </div>
           <div className="h-[50%] motif-border overflow-hidden bg-surface-container-high relative">
@@ -85,18 +115,30 @@ const ContactUs = () => {
           <div className="bg-surface p-8 motif-border ambient-shadow h-full flex flex-col">
             <h2 className="font-headline-md text-headline-md text-primary mb-2">Send an Inquiry</h2>
             <p className="font-body-md text-body-md text-on-surface-variant mb-8">We endeavor to respond to all curatorial inquiries within 24 hours.</p>
-            <form className="space-y-8 flex-grow flex flex-col">
+            <form onSubmit={handleSubmit} className="space-y-8 flex-grow flex flex-col relative">
+              {status === 'success' && (
+                <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-center p-6 border border-secondary">
+                  <span className="material-symbols-outlined text-secondary text-5xl mb-4" style={{ fontVariationSettings: "'FILL' 0" }}>check_circle</span>
+                  <h3 className="font-story-serif text-primary text-2xl mb-2">Inquiry Received</h3>
+                  <p className="font-body-md text-on-surface-variant">Thank you. Our artisans will review your request and reach out shortly.</p>
+                </div>
+              )}
+              {status === 'error' && (
+                <div className="p-4 mb-4 bg-error-container text-on-error-container text-sm rounded-sm">
+                  There was a problem sending your message. Please try again or contact us directly via email.
+                </div>
+              )}
               <div className="relative">
                 <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2 uppercase" htmlFor="name">Full Name</label>
-                <input className="input-underline w-full font-body-lg text-body-lg" id="name" name="name" required type="text" />
+                <input className="input-underline w-full font-body-lg text-body-lg" id="name" name="name" required type="text" value={formData.name} onChange={handleChange} disabled={status === 'loading'} />
               </div>
               <div className="relative">
                 <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2 uppercase" htmlFor="email">Email Address</label>
-                <input className="input-underline w-full font-body-lg text-body-lg" id="email" name="email" required type="email" />
+                <input className="input-underline w-full font-body-lg text-body-lg" id="email" name="email" required type="email" value={formData.email} onChange={handleChange} disabled={status === 'loading'} />
               </div>
               <div className="relative">
                 <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2 uppercase" htmlFor="subject">Subject of Inquiry</label>
-                <select className="input-underline w-full font-body-lg text-body-lg appearance-none bg-transparent" id="subject" name="subject">
+                <select className="input-underline w-full font-body-lg text-body-lg appearance-none bg-transparent" id="subject" name="subject" value={formData.subject} onChange={handleChange} disabled={status === 'loading'}>
                   <option>Bespoke Commission</option>
                   <option>Collection Inquiry</option>
                   <option>Wholesale Partnership</option>
@@ -108,11 +150,11 @@ const ContactUs = () => {
               </div>
               <div className="relative flex-grow">
                 <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2 uppercase" htmlFor="message">Your Message</label>
-                <textarea className="input-underline w-full font-body-lg text-body-lg resize-none h-[120px]" id="message" name="message" required rows={4}></textarea>
+                <textarea className="input-underline w-full font-body-lg text-body-lg resize-none h-[120px]" id="message" name="message" required rows={4} value={formData.message} onChange={handleChange} disabled={status === 'loading'}></textarea>
               </div>
-              <button className="mt-auto w-full bg-primary-container text-[#fed65b] font-label-caps text-label-caps py-4 px-8 uppercase tracking-widest hover:bg-tertiary transition-colors duration-300 flex justify-center items-center gap-2 group cursor-pointer" type="submit">
-                Submit Inquiry
-                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_forward</span>
+              <button disabled={status === 'loading'} className="mt-auto w-full bg-primary-container text-[#fed65b] font-label-caps text-label-caps py-4 px-8 uppercase tracking-widest hover:bg-tertiary transition-colors duration-300 flex justify-center items-center gap-2 group cursor-pointer disabled:opacity-70" type="submit">
+                {status === 'loading' ? 'Sending...' : 'Submit Inquiry'}
+                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" style={{ fontVariationSettings: "'FILL' 0" }}>{status === 'loading' ? 'sync' : 'arrow_forward'}</span>
               </button>
             </form>
           </div>

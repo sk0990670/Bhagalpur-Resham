@@ -18,6 +18,14 @@ export const cmsService = {
     const response = await api.get('/cms', { params });
     return response.data;
   },
+  getStoryStats: async () => {
+    const response = await api.get('/cms/story-stats');
+    return response.data;
+  },
+  getPublicArtisans: async () => {
+    const response = await api.get('/cms/public-artisans');
+    return response.data;
+  },
 
   // Admin routes
   create: async (data: any) => {

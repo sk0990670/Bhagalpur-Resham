@@ -2,67 +2,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../auth/authSlice';
 import { authService } from '../../../shared/services/auth.service';
+import CustomerSidebar from '../../../shared/components/CustomerSidebar';
 
 const CustomerSupportPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch (e) {
-      console.error('Logout failed:', e);
-    } finally {
-      dispatch(logout());
-      navigate('/login');
-    }
-  };
-
   return (
-    <div className="flex flex-1 w-full mx-auto relative">
-      {/* SideNavBar */}
-      <aside className="w-64 flex-shrink-0 bg-surface-container-low dark:bg-surface-container-lowest border-r border-outline-variant/20 hidden md:flex flex-col py-8">
-        <div className="px-6 mb-8 text-center">
-          <div className="w-20 h-20 mx-auto rounded-full bg-surface-variant flex items-center justify-center mb-4 border border-secondary-container">
-            <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
-          </div>
-          <h2 className="font-headline-md text-[20px] font-semibold text-primary">Welcome, Patron</h2>
-          <p className="font-body-md text-[14px] text-on-surface-variant">Custodian of Heritage</p>
-          <button className="mt-4 px-4 py-2 bg-primary-container text-on-primary text-label-caps uppercase tracking-widest hover:bg-primary transition-colors w-full border border-secondary-fixed-dim">
-            View Loom Status
-          </button>
-        </div>
-        <nav className="flex-1 flex flex-col gap-2">
-          <Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" to="/dashboard">
-            <span className="material-symbols-outlined">account_circle</span>
-            <span className="font-body-md text-body-md">My Profile</span>
-          </Link>
-          <Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" to="/order-history">
-            <span className="material-symbols-outlined">potted_plant</span>
-            <span className="font-body-md text-body-md">Order History</span>
-          </Link>
-
-          <Link className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" to="/artisan-credits">
-            <span className="material-symbols-outlined">auto_awesome</span>
-            <span className="font-body-md text-body-md">Artisan Credits</span>
-          </Link>
-          <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 hover:bg-surface-container-highest transition-colors" href="#">
-            <span className="material-symbols-outlined">settings</span>
-            <span className="font-body-md text-body-md">Settings</span>
-          </a>
-        </nav>
-        <div className="mt-auto px-4 flex flex-col gap-2 border-t border-outline-variant/20 pt-4">
-          <Link className="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container font-semibold rounded-lg hover:bg-surface-container-highest transition-colors translate-x-1" to="/support">
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>help</span>
-            <span className="font-body-md text-[14px]">Support</span>
-          </Link>
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors w-full text-left cursor-pointer">
-            <span className="material-symbols-outlined">logout</span>
-            <span className="font-body-md text-[14px]">Log Out</span>
-          </button>
-        </div>
-      </aside>
-      
+    <div className="flex flex-1 w-full mx-auto relative bg-surface">
+      <CustomerSidebar />
       {/* Main Content Canvas */}
       <main className="flex-1 p-margin-mobile md:p-margin-desktop min-h-[calc(100vh-88px)] w-full max-w-container-max mx-auto">
         <div className="max-w-4xl mx-auto space-y-12">
@@ -82,8 +30,8 @@ const CustomerSupportPage = () => {
               <p className="font-body-md text-on-surface-variant mb-6 flex-grow">
                 Our support team is available to assist you with any inquiries regarding your orders, the heritage of our silk, or our artisans.
               </p>
-              <a href="mailto:support@bhagalpurresham.com" className="bg-primary text-on-primary font-label-caps text-center py-3 px-6 rounded hover:bg-primary-container transition-colors">
-                support@bhagalpurresham.com
+              <a href={`mailto:${import.meta.env.VITE_SUPPORT_EMAIL}`} className="bg-primary text-on-primary font-label-caps text-center py-3 px-6 rounded hover:bg-primary-container transition-colors">
+                {import.meta.env.VITE_SUPPORT_EMAIL}
               </a>
             </div>
 
@@ -93,8 +41,8 @@ const CustomerSupportPage = () => {
               <p className="font-body-md text-on-surface-variant mb-6 flex-grow">
                 Speak directly with a patron concierge for immediate assistance with urgent matters or custom orders.
               </p>
-              <a href="tel:+9118001234567" className="bg-primary text-on-primary font-label-caps text-center py-3 px-6 rounded hover:bg-primary-container transition-colors">
-                +91 1800 123 4567
+              <a href={`tel:${import.meta.env.VITE_SUPPORT_PHONE}`} className="bg-primary text-on-primary font-label-caps text-center py-3 px-6 rounded hover:bg-primary-container transition-colors">
+                {import.meta.env.VITE_SUPPORT_PHONE}
               </a>
             </div>
           </section>

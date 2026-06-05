@@ -48,7 +48,7 @@ const ReturnPolicy = () => {
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-secondary scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500"></div>
                 <span className="material-symbols-outlined text-secondary text-3xl mb-4 block" style={{ fontVariationSettings: "'FILL' 0" }}>mail</span>
                 <h3 className="font-label-caps text-label-caps text-primary mb-3">1. Contact Support</h3>
-                <p className="font-body-md text-body-md text-on-surface-variant text-sm">Email our concierge desk at care@bhagalpurresham.com with your order number and reason for return.</p>
+                <p className="font-body-md text-body-md text-on-surface-variant text-sm">Email our concierge desk at {import.meta.env.VITE_RETURNS_EMAIL} with your order number and reason for return.</p>
               </div>
               
               {/* Step 2 */}

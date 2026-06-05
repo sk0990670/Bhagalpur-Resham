@@ -77,7 +77,7 @@ const Home = () => {
             <p className="font-body-md text-body-md text-on-surface-variant mb-8">
               We partner directly with master weavers, ensuring fair trade and preserving the traditional handloom techniques that give our silk its distinctive rich texture and natural golden sheen.
             </p>
-            <Link className="inline-flex items-center gap-2 text-primary font-label-caps text-label-caps hover:text-tertiary-container transition-colors group" to="/">
+            <Link className="inline-flex items-center gap-2 text-primary font-label-caps text-label-caps hover:text-tertiary-container transition-colors group" to="/story">
               DISCOVER OUR STORY
               <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_forward</span>
             </Link>

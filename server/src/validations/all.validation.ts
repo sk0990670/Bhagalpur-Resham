@@ -22,6 +22,7 @@ export const createOrderSchema = z.object({
   paymentMethod: z.enum(['razorpay', 'cod', 'bank_transfer', 'upi', 'card', 'netbanking']),
   shippingMethod: z.enum(['standard', 'express']).default('standard'),
   couponCode: z.string().optional(),
+  creditsToRedeem: z.number().int().min(100).optional(),
   notes: z.string().max(500).optional(),
   razorpay: z.object({
     razorpayOrderId: z.string(),

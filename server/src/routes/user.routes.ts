@@ -22,5 +22,6 @@ router.get('/:id', authenticate, authorize('admin', 'superadmin'), userControlle
 router.patch('/:id/role', authenticate, authorize('superadmin'), validate(updateRoleSchema), userController.updateRole);
 router.patch('/:id/deactivate', authenticate, authorize('admin', 'superadmin'), userController.deactivateUser);
 router.patch('/:id/activate', authenticate, authorize('admin', 'superadmin'), userController.activateUser);
+router.get('/role/artisans', authenticate, authorize('admin', 'superadmin'), userController.listAvailableArtisans);
 
 export default router;

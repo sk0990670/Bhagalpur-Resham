@@ -72,10 +72,15 @@ export interface IOrderPricing {
   discount: number;
   couponDiscount: number;
   couponCode?: string;
+  creditDiscount?: number;
+  creditsRedeemed?: number;
   shipping: number;
   shippingPaid: boolean;
   codAmount?: number;
   tax: number;
+  materialCost?: number; // Production Costs
+  artisanCost?: number;
+  additionalCost?: number;
   total: number;
 }
 
@@ -107,15 +112,22 @@ export interface IOrder extends Document {
   pricing: IOrderPricing;
   paymentInfo: IPaymentInfo;
   status: OrderStatus;
+  productionStage?: 'assigned' | 'yarn_preparation' | 'dyeing' | 'weaving' | 'finishing' | 'quality_check' | 'ready_for_dispatch' | 'completed';
   statusHistory: IStatusHistory[];
   trackingNumber?: string;
   trackingUrl?: string;
+  courierName?: string;
+  shippingDate?: Date;
+  invoiceNumber?: string;
+  invoicePdfUrl?: string;
+  invoiceImageUrl?: string;
   coupon?: mongoose.Types.ObjectId;
   estimatedDelivery?: Date;
   deliveredAt?: Date;
   cancelledAt?: Date;
   cancellationReason?: string;
   notes?: string;        // Admin notes
+  assignedArtisan?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -151,13 +163,18 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
 const pricingSchema = new Schema<IOrderPricing>(
   {
     subtotal: { type: Number, required: true },
-    discount: { type: Number, default: 0 },
-    couponDiscount: { type: Number, default: 0 },
+    discount: { type: Number, required: true },
+    couponDiscount: { type: Number, required: true },
     couponCode: { type: String },
-    shipping: { type: Number, default: 0 },
+    creditDiscount: { type: Number, default: 0 },
+    creditsRedeemed: { type: Number, default: 0 },
+    shipping: { type: Number, required: true },
     shippingPaid: { type: Boolean, default: false },
     codAmount: { type: Number },
     tax: { type: Number, default: 0 },
+    materialCost: { type: Number, default: 0 },
+    artisanCost: { type: Number, default: 0 },
+    additionalCost: { type: Number, default: 0 },
     total: { type: Number, required: true },
   },
   { _id: false },
@@ -223,14 +240,24 @@ const orderSchema = new Schema<IOrder>(
     status: {
       type: String,
       enum: Object.values(ORDER_STATUS),
-      default: ORDER_STATUS.PENDING,
+      default: ORDER_STATUS.PENDING_VERIFICATION,
+    },
+    productionStage: {
+      type: String,
+      enum: ['assigned', 'yarn_preparation', 'dyeing', 'weaving', 'finishing', 'quality_check', 'ready_for_dispatch', 'completed'],
     },
     statusHistory: [statusHistorySchema],
     trackingNumber: { type: String, trim: true },
     trackingUrl: { type: String },
+    courierName: { type: String },
+    shippingDate: { type: Date },
+    invoiceNumber: { type: String, unique: true, sparse: true, trim: true },
+    invoicePdfUrl: { type: String },
+    invoiceImageUrl: { type: String },
     coupon: { type: Schema.Types.ObjectId, ref: 'Coupon' },
     estimatedDelivery: { type: Date },
     deliveredAt: { type: Date },
+    assignedArtisan: { type: Schema.Types.ObjectId, ref: 'Artisan' },
     cancelledAt: { type: Date },
     cancellationReason: { type: String },
     notes: { type: String },

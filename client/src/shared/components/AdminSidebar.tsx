@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { to: '/admin/dashboard',   icon: 'dashboard',    label: 'Dashboard'       },
   { to: '/admin/inventory',   icon: 'inventory_2',  label: 'Inventory'       },
   { to: '/admin/orders',      icon: 'shopping_cart', label: 'Orders'         },
-  { to: '#',                  icon: 'groups',       label: 'Artisan Network' },
+  { to: '/admin/artisans',    icon: 'groups',       label: 'Artisan Network' },
   { to: '/admin/analytics',   icon: 'monitoring',   label: 'Analytics'       },
   { to: '/admin/customers',   icon: 'person',       label: 'Customers'       },
   { to: '/admin/coupons',     icon: 'local_offer',  label: 'Coupons'         },

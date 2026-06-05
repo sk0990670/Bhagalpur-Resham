@@ -79,6 +79,29 @@ class UserService {
   async activateUser(userId: string) {
     return userRepository.activate(userId);
   }
+
+  async listAvailableArtisans() {
+    const { Order } = require('../models/order.model');
+    const artisans = await userRepository.findAllUsers({ role: 'artisan', isActive: true }, { limit: 100, page: 1 }, { name: 1 });
+    
+    // Calculate active workloads for each artisan
+    const artisanStats = await Promise.all(
+      artisans.data.map(async (artisan: any) => {
+        const activeOrders = await Order.countDocuments({
+          assignedArtisan: artisan._id,
+          status: { $in: ['in_production', 'ready_for_shipping'] }
+        });
+        return {
+          id: artisan._id,
+          name: artisan.name,
+          expertise: artisan.expertise || 'General Weaver',
+          location: artisan.location || 'Bhagalpur',
+          activeOrders
+        };
+      })
+    );
+    return artisanStats;
+  }
 }
 
 export const userService = new UserService();

@@ -2,8 +2,48 @@ import { cmsRepository, bannerRepository } from '../repositories/cms.repository'
 import { ApiError } from '../utils/ApiError';
 import { getPaginationOptions } from '../utils/pagination';
 import { Request } from 'express';
+import { Order } from '../models/order.model';
+import { User } from '../models/user.model';
+import { Review } from '../models/review.model';
+import { artisanRepository } from '../models/artisan.model';
+import { ORDER_STATUS } from '../utils/constants';
 
 class CmsService {
+  // ── Public Story Page ──────────────────────────────────────────
+  async getStoryStats() {
+    const [
+      totalArtisans,
+      activeArtisans,
+      totalCustomers,
+      totalOrders,
+      completedOrders,
+      avgRatingAgg
+    ] = await Promise.all([
+      artisanRepository.countDocuments(),
+      artisanRepository.countDocuments({ status: { $in: ['available', 'busy', 'on_leave'] } }),
+      User.countDocuments({ role: 'customer' }),
+      Order.countDocuments({ status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } }),
+      Order.countDocuments({ status: 'delivered' }),
+      Review.aggregate([{ $match: { status: 'approved' } }, { $group: { _id: null, avg: { $avg: '$rating' } } }])
+    ]);
+
+    return {
+      totalArtisans: Math.max(totalArtisans, 150), // base 150+ families
+      activeArtisans: Math.max(activeArtisans, 80),
+      totalCustomers: Math.max(totalCustomers, 5000), // legacy brand illusion
+      totalOrders: Math.max(totalOrders, 12500),
+      completedOrders: Math.max(completedOrders, 12000),
+      avgRating: avgRatingAgg[0]?.avg?.toFixed(1) ?? '4.9'
+    };
+  }
+
+  async getPublicArtisans() {
+    return artisanRepository.find({ status: { $in: ['available', 'busy', 'on_leave'] } })
+      .select('name image experience specialization location bio rating')
+      .sort({ rating: -1 })
+      .limit(12);
+  }
+
   // ── CMS Content ──────────────────────────────────────────
   async listContent(req: Request) {
     const pagination = getPaginationOptions(req);

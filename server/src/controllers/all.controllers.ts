@@ -110,12 +110,28 @@ export const wishlistController = new WishlistController();
 // ── Order Controller ─────────────────────────────────────────
 class OrderController {
   calculatePricing = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Pricing calculated', await orderService.calculateOrderPricing(req.user!.userId, req.body))); });
-  placeOrder = asyncHandler(async (req, res) => { res.status(201).json(ApiResponse.created('Order placed', await orderService.placeOrder(req.user!.userId, req.body))); });
+  placeOrder = asyncHandler(async (req, res) => { res.status(201).json(ApiResponse.created('Order placed', await orderService.initiateOrder(req.user!.userId, req.body))); });
   getMyOrders = asyncHandler(async (req, res) => { const r = await orderService.getMyOrders(req.user!.userId, req); res.json(ApiResponse.ok('Orders', r.data, r.meta)); });
   getOrderById = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Order', await orderService.getOrderById(req.params.id as string, req.user!.userId, req.user!.role))); });
   updateStatus = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Status updated', await orderService.updateOrderStatus(req.params.id as string, req.body.status, req.user!.userId, req.body))); });
   cancelOrder = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Order cancelled', await orderService.cancelOrder(req.params.id as string, req.user!.userId, req.body.reason))); });
   listAllOrders = asyncHandler(async (req, res) => { const r = await orderService.listAllOrders(req); res.json(ApiResponse.ok('All orders', r.data, r.meta)); });
+  
+  // Specific Admin Actions
+  verifyPaymentAdmin = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Payment verified', await orderService.verifyPaymentAdmin(req.params.id as string, req.body.action, req.user!.userId))); });
+  assignArtisan = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Artisan assigned', await orderService.assignArtisan(req.params.id as string, req.body.artisanId, req.user!.userId))); });
+  updateProductionStage = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Production stage updated', await orderService.updateProductionStage(req.params.id as string, req.body.stage, req.user!.userId))); });
+  markReadyForShipping = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Ready for shipping', await orderService.markReadyForShipping(req.params.id as string, req.user!.userId))); });
+  shipOrder = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Order shipped', await orderService.shipOrder(req.params.id as string, req.body, req.user!.userId))); });
+  markDelivered = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Order delivered', await orderService.markDelivered(req.params.id as string, req.user!.userId))); });
+  downloadInvoice = asyncHandler(async (req, res) => {
+    const { pdfService } = await import('../services/pdf.service');
+    const order = await orderService.getOrderById(req.params.id as string, req.user!.userId, req.user!.role);
+    const pdfBuffer = await pdfService.generateInvoice(order);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Invoice-${order.orderId}.pdf`);
+    res.send(pdfBuffer);
+  });
 }
 export const orderController = new OrderController();
 
@@ -147,6 +163,10 @@ export const couponController = new CouponController();
 
 // ── CMS Controller ───────────────────────────────────────────
 class CmsController {
+  // Public Story Page
+  getStoryStats = asyncHandler(async (_req, res) => { res.json(ApiResponse.ok('Story stats', await cmsService.getStoryStats())); });
+  getPublicArtisans = asyncHandler(async (_req, res) => { res.json(ApiResponse.ok('Public artisans', await cmsService.getPublicArtisans())); });
+
   listContent = asyncHandler(async (req, res) => { const r = await cmsService.listContent(req); res.json(ApiResponse.ok('Content', r.data, r.meta)); });
   getBySlug = asyncHandler(async (req, res) => { res.json(ApiResponse.ok('Content', await cmsService.getContentBySlug(req.params.slug as string, req.params.type as string))); });
   getFAQs = asyncHandler(async (_req, res) => { res.json(ApiResponse.ok('FAQs', await cmsService.getFAQs())); });

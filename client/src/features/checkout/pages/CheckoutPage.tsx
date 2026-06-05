@@ -60,8 +60,21 @@ const Checkout = () => {
     shipping: 0,
     tax: 0,
     total: 0,
-    codAmount: 0
+    codAmount: 0,
+    creditDiscount: 0
   });
+
+  const [availableCredits, setAvailableCredits] = useState(0);
+  const [creditsInput, setCreditsInput] = useState('');
+  const [appliedCredits, setAppliedCredits] = useState(0);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.get('/credits/balance')
+        .then(res => setAvailableCredits(res.data?.data?.availableCredits || 0))
+        .catch(err => console.error('Failed to fetch credits balance', err));
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -70,7 +83,8 @@ const Checkout = () => {
         const payload = {
           items: cartItems.map((i) => ({ product: i.product.id, qty: i.quantity })),
           shippingAddress: { pincode: formData.zip },
-          paymentMethod
+          paymentMethod,
+          creditsToRedeem: appliedCredits
         };
         const res = await api.post('/orders/calculate-pricing', payload);
         if (res.data?.data) {
@@ -78,7 +92,8 @@ const Checkout = () => {
             shipping: res.data.data.shipping,
             tax: res.data.data.tax,
             total: res.data.data.total,
-            codAmount: res.data.data.codAmount || 0
+            codAmount: res.data.data.codAmount || 0,
+            creditDiscount: res.data.data.creditDiscount || 0
           });
         }
       } catch (e) {
@@ -90,13 +105,51 @@ const Checkout = () => {
     if (formData.zip.length === 6 || formData.zip.length === 0) {
       fetchPricing();
     }
-  }, [cartItems, formData.zip, paymentMethod]);
+  }, [cartItems, formData.zip, paymentMethod, appliedCredits]);
+
+  const handleApplyCredits = async () => {
+    const amountToRedeem = Number(creditsInput);
+    if (isNaN(amountToRedeem) || amountToRedeem < 100) {
+      showToast('Minimum redemption is 100 credits.', 'error');
+      return;
+    }
+    if (!Number.isInteger(amountToRedeem)) {
+      showToast('Credits must be a whole number.', 'error');
+      return;
+    }
+    const maxAllowed = Math.floor((subtotal) * 0.20);
+    if (amountToRedeem > maxAllowed) {
+      showToast(`Maximum allowed redemption is ${maxAllowed} credits.`, 'error');
+      return;
+    }
+    if (amountToRedeem > availableCredits) {
+      showToast('Insufficient credits balance.', 'error');
+      return;
+    }
+    
+    try {
+      await api.post('/credits/validate-redemption', { creditsToRedeem: amountToRedeem, orderTotal: subtotal });
+      setAppliedCredits(amountToRedeem);
+      showToast(`Successfully applied ${amountToRedeem} credits.`, 'success');
+    } catch (e: any) {
+      showToast(e.response?.data?.message || 'Failed to apply credits', 'error');
+    }
+  };
+
+  const handleRemoveCredits = () => {
+    setAppliedCredits(0);
+    setCreditsInput('');
+    showToast('Credits removed.', 'success');
+  };
+
+  const [hasPlacedOrder, setHasPlacedOrder] = useState(false);
+
   useEffect(() => {
     // Empty Cart Protection
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !hasPlacedOrder) {
       navigate('/cart');
     }
-  }, [cartItems, navigate]);
+  }, [cartItems, navigate, hasPlacedOrder]);
 
   useEffect(() => {
     // Pre-fill user details if logged in
@@ -222,7 +275,7 @@ const Checkout = () => {
 
     try {
       setIsSubmitting(true);
-      const payload = {
+      const payload: any = {
         items: cartItems.map((i) => ({ product: i.product.id, qty: i.quantity })),
         shippingAddress: {
           name: formData.fullName,
@@ -234,65 +287,71 @@ const Checkout = () => {
           pincode: formData.zip,
           locality: formData.locality
         },
-        paymentMethod
+        paymentMethod,
+        creditsToRedeem: appliedCredits
       };
 
       const requiresOnlinePayment = paymentMethod !== 'cod' || (paymentMethod === 'cod' && pricing.shipping > 0);
+      const searchParams = new URLSearchParams(window.location.search);
+      const retryOrderId = searchParams.get('retryOrderId');
+      if (retryOrderId) {
+        payload.retryOrderId = retryOrderId;
+      }
 
-      if (!requiresOnlinePayment) {
-        const res = await api.post('/orders', payload);
-        if (res.data) {
-          dispatch(setCart({ items: [], totalItems: 0, subtotal: 0 }));
-          navigate('/order-confirmation', { 
-            state: { 
-              orderId: res.data.data.orderId, 
-              estimatedDelivery: res.data.data.estimatedDelivery,
-              shippingPaid: paymentMethod === 'cod' ? pricing.shipping : undefined,
-              codAmount: paymentMethod === 'cod' ? pricing.codAmount : undefined
-            } 
-          });
-        }
+      // 1. INITIATE ORDER (Creates PENDING order in DB)
+      const res = await api.post('/orders', payload);
+      const order = res.data.data.order;
+      const razorpayData = res.data.data.razorpay;
+
+      if (!requiresOnlinePayment || !razorpayData) {
+        // Free COD order, automatically confirmed
+        setHasPlacedOrder(true);
+        dispatch(setCart({ items: [], totalItems: 0, subtotal: 0 }));
+        navigate('/order-confirmation', { 
+          state: { 
+            orderId: order._id, 
+            estimatedDelivery: order.estimatedDelivery,
+            shippingPaid: paymentMethod === 'cod' ? pricing.shipping : undefined,
+            codAmount: paymentMethod === 'cod' ? pricing.codAmount : undefined
+          } 
+        });
       } else {
         // ONLINE PAYMENT FLOW
-        const initRes = await api.post('/payments/create-order', payload);
-        const { razorpayOrderId, amount, currency, keyId } = initRes.data.data;
-
-        // Ensure we never hardcode keys: Use VITE_RAZORPAY_KEY_ID or fallback to backend-provided key.
+        const { razorpayOrderId, amount, currency, keyId } = razorpayData;
         const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || keyId;
-        console.log('[Razorpay] Init Order Success:', initRes.data.data);
-        console.log('[Razorpay] Using Key:', razorpayKey.substring(0, 8) + '...');
 
+        console.log('[Razorpay] Init Order Success:', razorpayData);
+        
         const options = {
           key: razorpayKey,
           amount,
           currency,
           name: 'Bhagalpur Resham',
           description: 'Acquisition of Heritage Handloom',
-          image: '/favicon.png', // Add your logo path if you have one
+          image: '/favicon.png',
           order_id: razorpayOrderId,
           handler: async function (response: any) {
             try {
-              setIsSubmitting(true); // Re-enable loading during verify
-              const finalPayload = {
-                ...payload,
-                razorpay: {
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature
-                }
+              setIsSubmitting(true);
+              const verifyPayload = {
+                orderId: order._id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
               };
               console.log('[Razorpay] Payment Success Callback Triggered:', response);
               
-              // verify does the entire verification -> create order -> inventory -> clear cart flow.
-              const res = await api.post('/payments/verify', finalPayload);
-              console.log('[Razorpay] Backend Verification Response:', res.data);
+              // 2. VERIFY PAYMENT (Sets to CONFIRMED, clears cart)
+              const verifyRes = await api.post('/payments/verify', verifyPayload);
+              console.log('[Razorpay] Backend Verification Response:', verifyRes.data);
               
-              if (res.data) {
+              if (verifyRes.data) {
+                setHasPlacedOrder(true);
                 dispatch(setCart({ items: [], totalItems: 0, subtotal: 0 }));
                 navigate('/order-confirmation', { 
                   state: { 
-                    orderId: res.data.data.orderId, 
-                    estimatedDelivery: res.data.data.estimatedDelivery,
+                    orderId: order._id, 
+                    estimatedDelivery: order.estimatedDelivery,
                     shippingPaid: paymentMethod === 'cod' ? pricing.shipping : undefined,
                     codAmount: paymentMethod === 'cod' ? pricing.codAmount : undefined
                   } 
@@ -302,12 +361,16 @@ const Checkout = () => {
               console.error('[Razorpay] Backend Verification Failed:', err.response?.data || err);
               showToast(err.response?.data?.message || 'Payment verification failed. Please try again.', 'error');
               setIsSubmitting(false);
+              // Do not navigate, let them stay on checkout or go to history to retry
             }
           },
           modal: {
             ondismiss: function () {
               console.log('[Razorpay] Checkout modal closed by user');
               setIsSubmitting(false);
+              // Redirect to order history so they can retry payment later
+              navigate('/order-history');
+              showToast('Payment cancelled. Your order is pending payment.', 'info');
             }
           },
           prefill: {
@@ -317,11 +380,10 @@ const Checkout = () => {
             method: paymentMethod === 'cod' ? 'upi' : paymentMethod
           },
           theme: {
-            color: '#800020' // Primary brand color
+            color: '#800020'
           }
         };
 
-        console.log('[Razorpay] Opening Checkout with options:', { ...options, key: 'HIDDEN' });
         const rzp = new window.Razorpay(options);
         
         rzp.on('payment.failed', function (response: any) {
@@ -330,7 +392,6 @@ const Checkout = () => {
           setIsSubmitting(false);
         });
         
-        // Open the checkout
         rzp.open();
       }
     } catch (error: any) {
@@ -658,6 +719,52 @@ const Checkout = () => {
                 })}
               </div>
 
+
+              {/* Apply Credits Section */}
+              {availableCredits >= 100 && (
+                <div className="bg-surface-container-lowest p-6 border-t border-secondary/20 mt-4">
+                  <h4 className="font-headline-sm text-primary mb-2 flex items-center gap-2">
+                    <span className="material-symbols-outlined">stars</span> Artisan Credits
+                  </h4>
+                  <p className="font-body-md text-sm text-on-surface-variant mb-4">
+                    Balance: <strong>{availableCredits} credits</strong>
+                  </p>
+                  
+                  {appliedCredits > 0 ? (
+                    <div className="flex justify-between items-center bg-surface-container-low p-4 border border-secondary/30">
+                      <div>
+                        <p className="font-semibold text-secondary">{appliedCredits} Credits Applied</p>
+                        <p className="text-xs text-on-surface-variant">Discount: ₹{appliedCredits}</p>
+                      </div>
+                      <button onClick={handleRemoveCredits} className="text-error text-sm font-bold hover:underline">Remove</button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <input 
+                          type="number" 
+                          value={creditsInput} 
+                          onChange={(e) => setCreditsInput(e.target.value)} 
+                          placeholder="Enter Credits"
+                          className="input-line flex-grow font-body-md text-sm"
+                          min="100"
+                        />
+                        <button onClick={handleApplyCredits} className="bg-secondary text-on-secondary px-4 py-2 font-label-caps text-xs">Apply</button>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const maxAllowed = Math.floor(subtotal * 0.20);
+                          setCreditsInput(Math.min(availableCredits, maxAllowed).toString());
+                        }} 
+                        className="text-secondary text-xs font-bold text-left hover:underline w-max"
+                      >
+                        Apply Max Allowed ({Math.min(availableCredits, Math.floor(subtotal * 0.20))})
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-on-surface-variant mt-2">100 credits = ₹100. Max 20% of subtotal.</p>
+                </div>
+              )}
 
               {/* Summary Totals */}
               <div className="bg-surface-container-low p-6 font-body-md text-on-surface border-t border-secondary/20 mt-4">

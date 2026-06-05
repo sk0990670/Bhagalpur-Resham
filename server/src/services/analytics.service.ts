@@ -17,11 +17,11 @@ class AnalyticsService {
       totalOrders, pendingOrders, totalUsers, totalProducts,
       lowStockProducts, avgRating, recentOrders,
     ] = await Promise.all([
-      Order.aggregate([{ $match: { status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUNDED] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
-      Order.aggregate([{ $match: { createdAt: { $gte: startOfMonth }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUNDED] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' }, count: { $sum: 1 } } }]),
-      Order.aggregate([{ $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUNDED] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
+      Order.aggregate([{ $match: { status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
+      Order.aggregate([{ $match: { createdAt: { $gte: startOfMonth }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' }, count: { $sum: 1 } } }]),
+      Order.aggregate([{ $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
       Order.countDocuments(),
-      Order.countDocuments({ status: ORDER_STATUS.PENDING }),
+      Order.countDocuments({ status: ORDER_STATUS.PENDING_VERIFICATION }),
       User.countDocuments({ role: 'customer' }),
       Product.countDocuments({ isActive: true }),
       Product.countDocuments({ stock: { $lte: 5 }, isActive: true }),
@@ -49,7 +49,7 @@ class AnalyticsService {
 
   async getTopProducts(limit = 10) {
     return Order.aggregate([
-      { $match: { status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUNDED] } } },
+      { $match: { status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } } },
       { $unwind: '$items' },
       { $group: { _id: '$items.product', name: { $first: '$items.name' }, totalQty: { $sum: '$items.qty' }, totalRevenue: { $sum: '$items.total' } } },
       { $sort: { totalRevenue: -1 } },
@@ -66,7 +66,7 @@ class AnalyticsService {
 
   async getRevenueByCategory() {
     return Order.aggregate([
-      { $match: { status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUNDED] } } },
+      { $match: { status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } } },
       { $unwind: '$items' },
       { $lookup: { from: 'products', localField: 'items.product', foreignField: '_id', as: 'productData' } },
       { $unwind: '$productData' },

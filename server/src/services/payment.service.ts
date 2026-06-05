@@ -62,28 +62,7 @@ class PaymentService {
       throw ApiError.badRequest('Payment verification failed. Invalid signature.');
     }
 
-    const order = await orderRepository.updateById(data.orderId, {
-      'paymentInfo.status': 'paid',
-      'paymentInfo.razorpayOrderId': data.razorpayOrderId,
-      'paymentInfo.razorpayPaymentId': data.razorpayPaymentId,
-      'paymentInfo.razorpaySignature': data.razorpaySignature,
-      'paymentInfo.paidAt': new Date(),
-      status: 'confirmed',
-      $push: { statusHistory: { status: 'confirmed', timestamp: new Date(), note: 'Payment verified' } },
-    });
-
-    // Record coupon usage after successful payment
-    if (order?.coupon) {
-      const fullOrder = await orderRepository.findById(data.orderId);
-      if (fullOrder) {
-        await couponRepository.recordUsage(
-          order.coupon.toString(),
-          fullOrder.user.toString(),
-          data.orderId,
-          fullOrder.pricing.couponDiscount
-        );
-      }
-    }
+    const order = await orderService.finalizeOrder(data.orderId, data);
 
     logger.info(`Payment verified for order ${data.orderId}`);
     return order;

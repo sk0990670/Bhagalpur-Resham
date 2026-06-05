@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { categoryController, cartController, wishlistController, orderController, reviewController, couponController, cmsController, paymentController, analyticsController } from '../controllers/all.controllers';
+import { invoiceController } from '../controllers/invoice.controller';
+import * as artisanController from '../controllers/artisan.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { authorize } from '../middleware/rbac.middleware';
 import { validate } from '../middleware/validate.middleware';
@@ -41,10 +43,23 @@ orderRouter.post('/calculate-pricing', orderController.calculatePricing);
 orderRouter.post('/', validate(createOrderSchema), orderController.placeOrder);
 orderRouter.get('/my-orders', orderController.getMyOrders);
 orderRouter.get('/:id', orderController.getOrderById);
+orderRouter.get('/:id/invoice', orderController.downloadInvoice);
 orderRouter.patch('/:id/cancel', orderController.cancelOrder);
 // Admin
 orderRouter.get('/', authorize('admin', 'superadmin'), orderController.listAllOrders);
 orderRouter.patch('/:id/status', authorize('admin', 'superadmin'), validate(updateOrderStatusSchema), orderController.updateStatus);
+orderRouter.patch('/:id/verify-payment', authorize('admin', 'superadmin'), orderController.verifyPaymentAdmin);
+orderRouter.patch('/:id/assign-artisan', authorize('admin', 'superadmin'), orderController.assignArtisan);
+orderRouter.patch('/:id/update-production-stage', authorize('admin', 'superadmin', 'artisan'), orderController.updateProductionStage);
+orderRouter.patch('/:id/ready-for-shipping', authorize('admin', 'superadmin', 'artisan'), orderController.markReadyForShipping);
+orderRouter.patch('/:id/ship', authorize('admin', 'superadmin'), orderController.shipOrder);
+orderRouter.patch('/:id/deliver', authorize('admin', 'superadmin'), orderController.markDelivered);
+
+// ── Invoices ──────────────────────────────────────────────────
+export const invoiceRouter = Router();
+invoiceRouter.use(authenticate);
+invoiceRouter.get('/:orderId', invoiceController.getInvoice);
+invoiceRouter.get('/:orderId/download', invoiceController.downloadInvoice);
 
 // ── Reviews ───────────────────────────────────────────────────
 export const reviewRouter = Router();
@@ -68,6 +83,8 @@ couponRouter.delete('/:id', couponController.delete);
 
 // ── CMS ───────────────────────────────────────────────────────
 export const cmsRouter = Router();
+cmsRouter.get('/story-stats', cmsController.getStoryStats);
+cmsRouter.get('/public-artisans', cmsController.getPublicArtisans);
 cmsRouter.get('/faqs', cmsController.getFAQs);
 cmsRouter.get('/banners/:placement', cmsController.getBanners);
 cmsRouter.get('/:type/:slug', cmsController.getBySlug);
@@ -103,3 +120,15 @@ analyticsRouter.get('/top-products', analyticsController.topProducts);
 analyticsRouter.get('/order-status', analyticsController.orderStatus);
 analyticsRouter.get('/revenue-by-category', analyticsController.revenueByCategory);
 analyticsRouter.get('/customer-growth', analyticsController.customerGrowth);
+
+// ── Artisans ──────────────────────────────────────────────────
+export const artisanRouter = Router();
+artisanRouter.use(authenticate, authorize('admin', 'superadmin'));
+artisanRouter.get('/stats', artisanController.getDashboardStats);
+artisanRouter.get('/recommended', artisanController.getRecommendedArtisans);
+artisanRouter.get('/', artisanController.getAllArtisans);
+artisanRouter.get('/:id', artisanController.getArtisanById);
+artisanRouter.get('/:id/orders', artisanController.getArtisanOrders);
+artisanRouter.post('/', artisanController.createArtisan);
+artisanRouter.patch('/:id', artisanController.updateArtisan);
+artisanRouter.delete('/:id', artisanController.deleteArtisan);

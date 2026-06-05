@@ -109,3 +109,5 @@ api.http
 
 # ── Scripts ───────────────────────────────────────────────────
 add_product_script.js
+stitch_order.html
+check_db.js

@@ -119,7 +119,7 @@ const AdminLogin = () => {
                   className="block w-full border-0 border-b border-primary bg-transparent py-2 px-0 text-on-surface focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant/70" 
                   id="email" 
                   name="email" 
-                  placeholder="admin@bhagalpurresham.com" 
+                  placeholder={import.meta.env.VITE_ADMIN_EMAIL || "admin@bhagalpurresham.com"} 
                   required 
                   type="email"
                   value={email}

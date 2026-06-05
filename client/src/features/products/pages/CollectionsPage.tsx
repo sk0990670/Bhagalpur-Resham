@@ -4,46 +4,9 @@ import { productService } from '../../../shared/services/product.service';
 import { useWishlist } from '../../wishlist/useWishlist';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ToastContainer } from '../../../shared/components/Toast';
+import ProductFilterSidebar from '../components/ProductFilterSidebar';
 
-const COLOR_PALETTE = [
-  { name: 'Red', bg: 'bg-[#FF0000]' },
-  { name: 'Maroon', bg: 'bg-[#800000]' },
-  { name: 'Pink', bg: 'bg-[#FFC0CB]' },
-  { name: 'Peach', bg: 'bg-[#FFDAB9]' },
-  { name: 'Orange', bg: 'bg-[#FFA500]' },
-  { name: 'Mustard', bg: 'bg-[#FFDB58]' },
-  { name: 'Yellow', bg: 'bg-[#FFFF00]' },
-  { name: 'Gold', bg: 'bg-[#D4AF37]' },
-  { name: 'Beige', bg: 'bg-[#F5F5DC]' },
-  { name: 'Cream', bg: 'bg-[#FFFDD0]' },
-  { name: 'Off White', bg: 'bg-[#FAF9F6]' },
-  { name: 'White', bg: 'bg-[#FFFFFF]' },
-  { name: 'Black', bg: 'bg-[#000000]' },
-  { name: 'Grey', bg: 'bg-[#808080]' },
-  { name: 'Silver', bg: 'bg-[#C0C0C0]' },
-  { name: 'Brown', bg: 'bg-[#8B4513]' },
-  { name: 'Green', bg: 'bg-[#008000]' },
-  { name: 'Olive Green', bg: 'bg-[#808000]' },
-  { name: 'Mehendi Green', bg: 'bg-[#A0A53A]' },
-  { name: 'Mint Green', bg: 'bg-[#98FF98]' },
-  { name: 'Sea Green', bg: 'bg-[#2E8B57]' },
-  { name: 'Bottle Green', bg: 'bg-[#006A4E]' },
-  { name: 'Emerald Green', bg: 'bg-[#50C878]' },
-  { name: 'Blue', bg: 'bg-[#0000FF]' },
-  { name: 'Navy Blue', bg: 'bg-[#000080]' },
-  { name: 'Royal Blue', bg: 'bg-[#4169E1]' },
-  { name: 'Sky Blue', bg: 'bg-[#87CEEB]' },
-  { name: 'Turquoise Blue', bg: 'bg-[#00CED1]' },
-  { name: 'Teal Blue', bg: 'bg-[#008080]' },
-  { name: 'Purple', bg: 'bg-[#800080]' },
-  { name: 'Lavender', bg: 'bg-[#E6E6FA]' },
-  { name: 'Violet', bg: 'bg-[#EE82EE]' },
-  { name: 'Magenta', bg: 'bg-[#FF00FF]' },
-  { name: 'Wine', bg: 'bg-[#722F37]' },
-  { name: 'Rust', bg: 'bg-[#B7410E]' },
-  { name: 'Coral', bg: 'bg-[#FF7F50]' },
-  { name: 'Multicolor', bg: 'bg-gradient-to-tr from-red-500 via-green-500 to-blue-500' }
-];
+
 
 const Collections = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -55,6 +18,8 @@ const Collections = () => {
   });
   const [sort, setSort] = useState('newest');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+
+
 
   const { toasts, showToast, removeToast } = useToast();
   const { isInWishlist, toggleItem } = useWishlist(showToast);
@@ -127,87 +92,12 @@ const Collections = () => {
 
       <div className="flex flex-col lg:flex-row gap-gutter">
         {/* Filter Sidebar */}
-        <aside className="w-full lg:w-1/4 pr-8 hidden md:block">
-          <div className="sticky top-32">
-            <h2 className="font-label-caps text-label-caps text-primary border-b border-outline-variant/50 pb-2 mb-6">Filters</h2>
-            
-            {/* Weave Type */}
-            <div className="mb-8">
-              <h3 className="font-body-lg text-body-lg text-on-surface mb-4">Weave Type</h3>
-              <ul className="space-y-3">
-                <li className="flex items-center">
-                  <input checked={filters.weaveType.includes("Pure Tussar Silk Weave")} onChange={() => handleWeaveChange("Pure Tussar Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-pure-tussar" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-pure-tussar">Pure Tussar Silk Weave</label>
-                </li>
-                <li className="flex items-center">
-                  <input checked={filters.weaveType.includes("Ghicha Silk Weave")} onChange={() => handleWeaveChange("Ghicha Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-ghicha" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-ghicha">Ghicha Silk Weave</label>
-                </li>
-                <li className="flex items-center">
-                  <input checked={filters.weaveType.includes("Matka Silk Weave")} onChange={() => handleWeaveChange("Matka Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-matka" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-matka">Matka Silk Weave</label>
-                </li>
-                <li className="flex items-center">
-                  <input checked={filters.weaveType.includes("Dupion Silk Weave")} onChange={() => handleWeaveChange("Dupion Silk Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-dupion" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-dupion">Dupion Silk Weave</label>
-                </li>
-                <li className="flex items-center">
-                  <input checked={filters.weaveType.includes("Cotton-Silk Bhagalpuri Weave")} onChange={() => handleWeaveChange("Cotton-Silk Bhagalpuri Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-cotton-silk" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-cotton-silk">Cotton-Silk Bhagalpuri Weave</label>
-                </li>
-                <li className="flex items-center">
-                  <input checked={filters.weaveType.includes("Zari Bhagalpuri Weave")} onChange={() => handleWeaveChange("Zari Bhagalpuri Weave")} className="custom-checkbox w-4 h-4 text-primary bg-surface border-outline rounded-sm focus:ring-secondary focus:ring-offset-surface" id="weave-zari" type="checkbox" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="weave-zari">Zari Bhagalpuri Weave</label>
-                </li>
-              </ul>
-            </div>
-
-            {/* Color */}
-            <div className="mb-8">
-              <h3 className="font-body-lg text-body-lg text-on-surface mb-4">Color</h3>
-              <div className="flex flex-wrap gap-3">
-                {COLOR_PALETTE.map((color) => (
-                  <div key={color.name} className="relative group flex items-center justify-center">
-                    <input 
-                      className="peer sr-only" 
-                      id={`color-${color.name.toLowerCase().replace(/\s+/g, '-')}`} 
-                      type="checkbox" 
-                      checked={filters.color.includes(color.name)}
-                      onChange={() => handleColorChange(color.name)}
-                    />
-                    <label 
-                      htmlFor={`color-${color.name.toLowerCase().replace(/\s+/g, '-')}`}
-                      className={`w-7 h-7 rounded-full cursor-pointer border border-outline-variant/30 ${color.bg} peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-primary peer-checked:ring-offset-surface transition-all`}
-                      aria-label={color.name}
-                    ></label>
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-[10px] font-label-caps px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10 border border-outline-variant/20 shadow-sm">
-                      {color.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Occasion */}
-            <div className="mb-8">
-              <h3 className="font-body-lg text-body-lg text-on-surface mb-4">Occasion</h3>
-              <ul className="space-y-3">
-                <li className="flex items-center">
-                  <input checked={filters.occasion.includes("Wedding")} onChange={() => handleOccasionChange("Wedding")} className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-wedding" name="occasion" type="radio" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="occ-wedding">Wedding</label>
-                </li>
-                <li className="flex items-center">
-                  <input checked={filters.occasion.includes("Festive")} onChange={() => handleOccasionChange("Festive")} className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-festive" name="occasion" type="radio" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="occ-festive">Festive</label>
-                </li>
-                <li className="flex items-center">
-                  <input checked={filters.occasion.includes("Casual")} onChange={() => handleOccasionChange("Casual")} className="custom-radio w-4 h-4 appearance-none border border-outline rounded-full cursor-pointer focus:outline-none" id="occ-casual" name="occasion" type="radio" />
-                  <label className="ml-3 font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="occ-casual">Casual</label>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </aside>
+        <ProductFilterSidebar 
+          filters={filters}
+          onWeaveChange={handleWeaveChange}
+          onColorChange={handleColorChange}
+          onOccasionChange={handleOccasionChange}
+        />
 
         {/* Product Grid */}
         <section className="w-full lg:w-3/4">
@@ -259,8 +149,8 @@ const Collections = () => {
             </div>
           </div>
 
-          {/* Changed gap from gap-8 to gap-6 to tighten the 3x3 grid slightly */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Changed gap to gap-6 for tight grid, columns updated to match requirements */}
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
             {isLoading ? (
               <div className="col-span-full py-12 text-center text-on-surface-variant font-body-lg">
                 Loading collections...

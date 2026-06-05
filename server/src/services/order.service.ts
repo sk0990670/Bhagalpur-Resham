@@ -1,10 +1,12 @@
 import { orderRepository } from '../repositories/order.repository';
+import { assignmentRepository } from '../models/assignment.model';
 import { productRepository } from '../repositories/product.repository';
 import { couponRepository } from '../repositories/coupon.repository';
 import { cartRepository } from '../repositories/cart.repository';
 import { userRepository } from '../repositories/user.repository';
 import { ApiError } from '../utils/ApiError';
 import { getPaginationOptions } from '../utils/pagination';
+import mongoose from 'mongoose';
 import { ORDER_STATUS_TRANSITIONS, DISCOUNT_TYPE } from '../utils/constants';
 import type { OrderStatus } from '../utils/constants';
 import { Request } from 'express';
@@ -13,6 +15,7 @@ import Razorpay from 'razorpay';
 import { env } from '../config/env';
 import { emailService } from './email.service';
 import { logger } from '../config/logger';
+import path from 'path';
 
 const razorpay = new Razorpay({ key_id: env.razorpay.keyId, key_secret: env.razorpay.keySecret });
 
@@ -115,114 +118,170 @@ class OrderService {
       codAmount = subtotal - couponDiscount + tax; // COD amount excludes shipping, as shipping is paid upfront
     }
 
-    return { orderItems, subtotal, couponDiscount, couponId, shipping, tax, total, codAmount, totalWeightGrams };
+    // --- Credits logic ---
+    let creditDiscount = 0;
+    let creditsRedeemed = 0;
+    if (data.creditsToRedeem && data.creditsToRedeem > 0) {
+      const { creditService } = await import('./credit.service');
+      const requestedCredits = Number(data.creditsToRedeem);
+      
+      // We validate against the subtotal after coupon but before shipping/tax
+      const amountEligibleForCredits = subtotal - couponDiscount;
+      await creditService.validateRedemption(userId, requestedCredits, amountEligibleForCredits);
+      
+      creditsRedeemed = requestedCredits;
+      creditDiscount = requestedCredits; // 1 credit = 1 INR
+    }
+
+    const finalTotal = total - creditDiscount;
+    if (codAmount > 0) {
+      codAmount = Math.max(0, codAmount - creditDiscount);
+    }
+
+    return { orderItems, subtotal, couponDiscount, couponId, shipping, tax, total: Math.max(0, finalTotal), codAmount, totalWeightGrams, creditDiscount, creditsRedeemed };
   }
 
-  async placeOrder(userId: string, data: any) {
-    const { orderItems, subtotal, couponDiscount, couponId, shipping, tax, total, codAmount } = await this.calculateOrderPricing(userId, data);
+  async initiateOrder(userId: string, data: any) {
+    // If a retry is happening, an orderId is provided
+    if (data.retryOrderId) {
+      const existingOrder = await orderRepository.findById(data.retryOrderId);
+      if (!existingOrder) throw ApiError.notFound('Order not found');
+      if (existingOrder.status !== 'pending_verification') throw ApiError.badRequest('Order is not in pending state');
+      
+      const payableAmount = existingOrder.paymentInfo.method === 'cod' ? existingOrder.pricing.shipping : existingOrder.pricing.total;
+      
+      if (payableAmount > 0) {
+        console.log(`[Razorpay] Re-creating order for retry. Amount: ${payableAmount}`);
+        const rzpOrder = await razorpay.orders.create({
+          amount: Math.round(payableAmount * 100),
+          currency: 'INR',
+          receipt: existingOrder.orderId,
+        });
+        
+        await orderRepository.updateById(existingOrder._id.toString(), {
+          'paymentInfo.razorpayOrderId': rzpOrder.id
+        });
+        
+        return {
+          order: existingOrder,
+          razorpay: { razorpayOrderId: rzpOrder.id, amount: rzpOrder.amount, currency: rzpOrder.currency, keyId: env.razorpay.keyId }
+        };
+      }
+      return { order: existingOrder };
+    }
+
+    const { orderItems, subtotal, couponDiscount, couponId, shipping, tax, total, codAmount, creditDiscount, creditsRedeemed } = await this.calculateOrderPricing(userId, data);
     
     let paymentStatus = 'pending';
-    let orderStatus = 'pending';
+    let orderStatus = 'pending_verification';
     let shippingPaid = false;
+    let rzpOrderResult: any = null;
     
-    // If ONLINE payment or COD (requires online shipping payment)
     const requiresRazorpay = data.paymentMethod !== 'cod' || (data.paymentMethod === 'cod' && shipping > 0);
     
+    // 1. Generate Razorpay intent if needed
     if (requiresRazorpay) {
-      const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = data.razorpay || {};
-      
-      if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-        throw ApiError.badRequest('Missing Razorpay payment details. Shipping/Order must be paid online.');
-      }
-
-      const body = `${razorpayOrderId}|${razorpayPaymentId}`;
-      const expectedSig = crypto.createHmac('sha256', env.razorpay.keySecret).update(body).digest('hex');
-      
-      console.log(`[Razorpay] Verifying Signature for Order: ${razorpayOrderId}, Payment: ${razorpayPaymentId}`);
-      
-      if (expectedSig !== razorpaySignature) {
-        console.error(`[Razorpay] Signature mismatch! Expected: ${expectedSig}, Received: ${razorpaySignature}`);
-        throw ApiError.badRequest('Payment verification failed. Invalid signature.');
-      }
-      console.log(`[Razorpay] Signature Verified Successfully.`);
-
-      // Fetch from Razorpay API to guarantee the exact amount was paid
-      console.log(`[Razorpay] Fetching Order from Razorpay API: ${razorpayOrderId}`);
-      const rzpOrder = await razorpay.orders.fetch(razorpayOrderId);
-      
-      const expectedAmount = data.paymentMethod === 'cod' ? Math.round(shipping * 100) : Math.round(total * 100);
-      
-      console.log(`[Razorpay] Comparing Amounts - Expected: ${expectedAmount}, Actual: ${rzpOrder?.amount}`);
-      
-      if (!rzpOrder || rzpOrder.amount !== expectedAmount) {
-        console.error(`[Razorpay] Amount mismatch! Expected: ${expectedAmount}, Actual: ${rzpOrder?.amount}`);
-        throw ApiError.badRequest('Payment verification failed. Amount mismatch or order invalid.');
-      }
-      
-      console.log(`[Razorpay] Amount Verified Successfully.`);
-
-      if (data.paymentMethod === 'cod') {
-        shippingPaid = true;
-        orderStatus = 'confirmed';
-        paymentStatus = 'shipping_paid'; // Changed from 'pending'
-        data.razorpay = { shippingPaymentId: razorpayPaymentId, razorpaySignature }; // Store shipping payment ID
-      } else {
-        paymentStatus = 'paid';
-        orderStatus = 'confirmed';
-        shippingPaid = true;
-        data.razorpay = { razorpayOrderId, razorpayPaymentId, razorpaySignature };
-      }
+      const payableAmount = data.paymentMethod === 'cod' ? shipping : total;
+      console.log(`[Razorpay] Creating order. Amount: ${payableAmount}`);
+      const rzpOrder = await razorpay.orders.create({
+        amount: Math.round(payableAmount * 100),
+        currency: 'INR',
+      });
+      rzpOrderResult = { razorpayOrderId: rzpOrder.id, amount: rzpOrder.amount, currency: rzpOrder.currency, keyId: env.razorpay.keyId };
     } else if (data.paymentMethod === 'cod' && shipping === 0) {
-      // Rare edge case: free shipping and COD
-      orderStatus = 'confirmed';
+      // orderStatus stays pending_verification, admin will confirm later
       shippingPaid = true;
     }
 
-    // 3. Generate order ID and create
+    // 2. Create Order in PENDING state
     const orderId = await orderRepository.generateOrderId();
+    const invoiceNumber = await orderRepository.generateInvoiceId();
     const order = await orderRepository.create({
       orderId,
+      invoiceNumber,
       user: userId as any,
       items: orderItems,
       shippingAddress: data.shippingAddress,
       shippingMethod: 'SPEED_POST',
-      pricing: { subtotal, discount: 0, couponDiscount, couponCode: data.couponCode, shipping, shippingPaid, tax, total, codAmount: data.paymentMethod === 'cod' ? codAmount : undefined },
+      pricing: { subtotal, discount: 0, couponDiscount, couponCode: data.couponCode, creditDiscount, creditsRedeemed, shipping, shippingPaid, tax, total, codAmount: data.paymentMethod === 'cod' ? codAmount : undefined },
       paymentInfo: { 
         method: data.paymentMethod, 
         status: paymentStatus,
-        razorpayOrderId: data.paymentMethod !== 'cod' ? data.razorpay?.razorpayOrderId : undefined,
-        razorpayPaymentId: data.paymentMethod !== 'cod' ? data.razorpay?.razorpayPaymentId : undefined,
-        shippingPaymentId: data.paymentMethod === 'cod' ? data.razorpay?.shippingPaymentId : undefined,
-        razorpaySignature: data.razorpay?.razorpaySignature,
-        paidAt: paymentStatus === 'paid' ? new Date() : undefined
+        razorpayOrderId: rzpOrderResult?.razorpayOrderId,
       },
       status: orderStatus,
       statusHistory: [{ status: orderStatus, timestamp: new Date() }],
       coupon: couponId as any,
     } as any);
 
-    // 4. Deduct stock for each item
+    // 3. Deduct stock for each item (Reservation)
     await Promise.all(orderItems.map((i) => productRepository.updateStock(i.product.toString(), -i.qty)));
 
-    // Record coupon usage
-    if (couponId) {
-       await couponRepository.recordUsage(couponId, userId, order._id.toString(), couponDiscount);
+    // 4. If COD + free shipping, record as pending_verification but auto-finalize payment details
+    if (data.paymentMethod === 'cod' && shipping === 0) {
+      await this.finalizeOrder(order._id.toString());
     }
 
-    // 5. Clear cart
-    await cartRepository.clearCart(userId);
+    // Return the created order and razorpay intent, BUT cart is NOT cleared yet
+    return { order, razorpay: rzpOrderResult };
+  }
 
-    // 6. Send email notification asynchronously
+  async finalizeOrder(orderId: string, razorpayData?: any) {
+    const order = await orderRepository.findById(orderId);
+    if (!order) throw ApiError.notFound('Order not found');
+
+    const updateData: any = {
+      'paymentInfo.status': order.paymentInfo.method === 'cod' ? 'shipping_paid' : 'paid',
+      'pricing.shippingPaid': true,
+      'paymentInfo.paidAt': new Date(),
+    };
+
+    if (razorpayData) {
+      updateData['paymentInfo.razorpayPaymentId'] = razorpayData.razorpayPaymentId;
+      updateData['paymentInfo.razorpaySignature'] = razorpayData.razorpaySignature;
+      if (order.paymentInfo.method === 'cod') {
+        updateData['paymentInfo.shippingPaymentId'] = razorpayData.razorpayPaymentId;
+      }
+    }
+
+    const updatedOrder = await orderRepository.updateById(orderId, {
+      ...updateData,
+    });
+
+    if (!updatedOrder) throw ApiError.internal('Failed to update order');
+
+    // Clear cart now that payment is confirmed
+    await cartRepository.clearCart(updatedOrder.user.toString());
+
+    // Record coupon usage
+    if (updatedOrder.coupon) {
+      await couponRepository.recordUsage(updatedOrder.coupon.toString(), updatedOrder.user.toString(), updatedOrder._id.toString(), updatedOrder.pricing.couponDiscount);
+    }
+
+    // Deduct redeemed credits
+    if (updatedOrder.pricing.creditsRedeemed && updatedOrder.pricing.creditsRedeemed > 0) {
+      const { creditService } = await import('./credit.service');
+      await creditService.redeemCredits(updatedOrder.user.toString(), updatedOrder._id.toString(), updatedOrder.pricing.creditsRedeemed);
+    }
+
+    // Generate invoice and send email
     try {
-      const user = await userRepository.findById(userId);
+      const user = await userRepository.findById(updatedOrder.user.toString());
       if (user && user.email) {
-        emailService.sendOrderConfirmation(user.email, order);
+        const { invoiceService } = await import('./invoice.service');
+        const { pdfPath, imagePath } = await invoiceService.generateInvoice(updatedOrder);
+        await orderRepository.updateById(updatedOrder._id.toString(), { invoicePdfUrl: pdfPath, invoiceImageUrl: imagePath });
+        updatedOrder.invoicePdfUrl = pdfPath;
+        updatedOrder.invoiceImageUrl = imagePath;
+        const fullPdfPath = path.join(process.cwd(), pdfPath);
+        const fullImagePath = path.join(process.cwd(), imagePath);
+        emailService.sendOrderConfirmation(user.email, updatedOrder, fullPdfPath, fullImagePath);
       }
     } catch (e) {
       logger.error('Failed to send email confirmation', e);
     }
 
-    return order;
+    return updatedOrder;
   }
 
   async getMyOrders(userId: string, req: Request) {
@@ -232,10 +291,83 @@ class OrderService {
   }
 
   async getOrderById(orderId: string, userId: string, role: string) {
+    let order;
+    const mongoose = require('mongoose');
+    if (mongoose.Types.ObjectId.isValid(orderId)) {
+      order = await orderRepository.findById(orderId);
+    }
+    if (!order) {
+      order = await orderRepository.findByOrderId(orderId);
+    }
+    if (!order) throw ApiError.notFound('Order not found');
+    if (role === 'customer' && order.user.toString() !== userId && order.user._id?.toString() !== userId) throw ApiError.forbidden('Access denied');
+    return order;
+  }
+
+  async verifyPaymentAdmin(orderId: string, action: 'approve' | 'reject', adminId: string) {
+    const newStatus = action === 'approve' ? 'confirmed' : 'payment_failed';
+    return this.updateOrderStatus(orderId, newStatus, adminId, { note: `Payment ${action}d` });
+  }
+
+  async assignArtisan(orderId: string, artisanId: string, adminId: string) {
     const order = await orderRepository.findById(orderId);
     if (!order) throw ApiError.notFound('Order not found');
-    if (role === 'customer' && order.user.toString() !== userId) throw ApiError.forbidden('Access denied');
-    return order;
+
+    await orderRepository.updateById(orderId, { $set: { assignedArtisan: artisanId as any, productionStage: 'assigned' } });
+    
+    // Create assignment record
+    await assignmentRepository.create({
+      orderId: order._id,
+      artisanId: artisanId,
+      assignedBy: adminId,
+      status: 'pending'
+    });
+
+    // Update artisan's active orders
+    await mongoose.model('Artisan').findByIdAndUpdate(artisanId, { $inc: { activeOrders: 1 } });
+    
+    return this.updateOrderStatus(orderId, 'in_production', adminId, { note: `Assigned to artisan` });
+  }
+
+  async updateProductionStage(orderId: string, stage: string, adminId: string) {
+    await orderRepository.updateById(orderId, { $set: { productionStage: stage } });
+    // Keep a note in the status history without changing the main status
+    return orderRepository.updateById(orderId, {
+      $push: { statusHistory: { status: 'in_production', updatedBy: adminId, timestamp: new Date(), note: `Production stage updated to: ${stage.replace('_', ' ')}` } }
+    });
+  }
+
+  async markReadyForShipping(orderId: string, artisanId: string) {
+    const order = await orderRepository.findById(orderId);
+    if (order && order.assignedArtisan) {
+      await assignmentRepository.findOneAndUpdate(
+        { orderId: order._id, artisanId: order.assignedArtisan },
+        { status: 'completed' }
+      );
+      // Decrease active orders and increase completed orders
+      await mongoose.model('Artisan').findByIdAndUpdate(order.assignedArtisan, { 
+        $inc: { activeOrders: -1, completedOrders: 1 } 
+      });
+    }
+    return this.updateOrderStatus(orderId, 'ready_for_shipping', artisanId, { note: 'Work completed by artisan' });
+  }
+
+  async shipOrder(orderId: string, shippingData: any, adminId: string) {
+    await orderRepository.updateById(orderId, {
+      $set: { 
+        courierName: shippingData.courierName, 
+        trackingNumber: shippingData.trackingNumber,
+        shippingDate: new Date()
+      }
+    });
+    return this.updateOrderStatus(orderId, 'shipped', adminId, { 
+      note: `Shipped via ${shippingData.courierName}`,
+      trackingNumber: shippingData.trackingNumber
+    });
+  }
+
+  async markDelivered(orderId: string, adminId: string) {
+    return this.updateOrderStatus(orderId, 'delivered', adminId, { note: 'Order successfully delivered to customer' });
   }
 
   async updateOrderStatus(orderId: string, newStatus: OrderStatus, adminId: string, extra?: any) {
@@ -253,20 +385,57 @@ class OrderService {
     if (newStatus === 'delivered') update.$set.deliveredAt = new Date();
     if (newStatus === 'cancelled') { update.$set.cancelledAt = new Date(); update.$set.cancellationReason = extra?.note; }
 
-    return orderRepository.updateById(orderId, update);
+    const updatedOrder = await orderRepository.updateById(orderId, update);
+    
+    // Call Credit Service to earn or reverse credits
+    if (newStatus === 'delivered' && updatedOrder) {
+      const { creditService } = await import('./credit.service');
+      await creditService.earnCredits(updatedOrder.user.toString(), updatedOrder._id.toString(), updatedOrder.pricing.total);
+    } else if ((newStatus === 'cancelled' || newStatus as string === 'refund_approved' || newStatus as string === 'refunded') && updatedOrder) {
+      const { creditService } = await import('./credit.service');
+      await creditService.reverseCredits(updatedOrder.user.toString(), updatedOrder._id.toString());
+    }
+
+    // Send status update email asynchronously
+    try {
+      if (updatedOrder) {
+        const user = await userRepository.findById(updatedOrder.user.toString());
+        if (user && user.email) {
+          emailService.sendStatusUpdateEmail(user.email, updatedOrder, newStatus);
+        }
+      }
+    } catch (e) {
+      logger.error('Failed to send status update email', e);
+    }
+    
+    return updatedOrder;
   }
 
   async cancelOrder(orderId: string, userId: string, reason?: string) {
     const order = await orderRepository.findById(orderId);
     if (!order) throw ApiError.notFound('Order not found');
     if (order.user.toString() !== userId) throw ApiError.forbidden('Access denied');
-    if (!['pending', 'pending_confirmation', 'confirmed'].includes(order.status)) throw ApiError.badRequest('Order cannot be cancelled at this stage');
+    if (!['pending', 'pending_verification', 'confirmed'].includes(order.status)) throw ApiError.badRequest('Order cannot be cancelled at this stage');
 
     await Promise.all(order.items.map((i) => productRepository.updateStock(i.product.toString(), i.qty)));
-    return orderRepository.updateById(orderId, {
+    const updatedOrder = await orderRepository.updateById(orderId, {
       $set: { status: 'cancelled', cancelledAt: new Date(), cancellationReason: reason },
       $push: { statusHistory: { status: 'cancelled', timestamp: new Date(), note: reason } },
     });
+    
+    // Send cancellation email asynchronously
+    try {
+      if (updatedOrder) {
+        const user = await userRepository.findById(userId);
+        if (user && user.email) {
+          emailService.sendStatusUpdateEmail(user.email, updatedOrder, 'cancelled');
+        }
+      }
+    } catch (e) {
+      logger.error('Failed to send cancellation email', e);
+    }
+    
+    return updatedOrder;
   }
 
   async listAllOrders(req: Request) {

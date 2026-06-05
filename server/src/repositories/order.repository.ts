@@ -1,5 +1,6 @@
 import { BaseRepository } from './base.repository';
 import { Order, IOrder } from '../models/order.model';
+import { Counter } from '../models/counter.model';
 import { ORDER_STATUS, OrderStatus } from '../utils/constants';
 
 export class OrderRepository extends BaseRepository<IOrder> {
@@ -27,15 +28,42 @@ export class OrderRepository extends BaseRepository<IOrder> {
   }
 
   async generateOrderId(): Promise<string> {
-    const date = new Date();
-    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
-    const count = await Order.countDocuments();
-    return `ORD-${dateStr}-${String(count + 1).padStart(4, '0')}`;
+    const today = new Date();
+    const dateStr = today.getFullYear().toString() +
+      (today.getMonth() + 1).toString().padStart(2, '0') +
+      today.getDate().toString().padStart(2, '0');
+
+    const counterId = `order_${dateStr}`;
+    const counter = await Counter.findOneAndUpdate(
+      { id: counterId },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const seqStr = counter.seq.toString().padStart(6, '0');
+    return `BRS-${dateStr}-${seqStr}`;
+  }
+
+  async generateInvoiceId(): Promise<string> {
+    const today = new Date();
+    const dateStr = today.getFullYear().toString() +
+      (today.getMonth() + 1).toString().padStart(2, '0') +
+      today.getDate().toString().padStart(2, '0');
+
+    const counterId = `invoice_${dateStr}`;
+    const counter = await Counter.findOneAndUpdate(
+      { id: counterId },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const seqStr = counter.seq.toString().padStart(6, '0');
+    return `INV-${dateStr}-${seqStr}`;
   }
 
   async getRevenueStats(startDate: Date, endDate: Date) {
     return Order.aggregate([
-      { $match: { createdAt: { $gte: startDate, $lte: endDate }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUNDED] } } },
+      { $match: { createdAt: { $gte: startDate, $lte: endDate }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } } },
       { $group: { _id: null, totalRevenue: { $sum: '$pricing.total' }, totalOrders: { $sum: 1 }, avgOrderValue: { $avg: '$pricing.total' } } },
     ]);
   }
@@ -44,7 +72,7 @@ export class OrderRepository extends BaseRepository<IOrder> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     return Order.aggregate([
-      { $match: { createdAt: { $gte: startDate }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUNDED] } } },
+      { $match: { createdAt: { $gte: startDate }, status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.REFUND_APPROVED] } } },
       { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, revenue: { $sum: '$pricing.total' }, count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]);

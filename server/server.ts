@@ -6,6 +6,7 @@ import { logger } from './src/config/logger';
 
 // Initialize background workers
 import './src/workers/product.worker';
+import './src/workers/cron.worker';
 
 const startServer = async (): Promise<void> => {
   // Connect to MongoDB first

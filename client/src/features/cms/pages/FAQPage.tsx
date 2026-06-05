@@ -144,7 +144,7 @@ const FAQ = () => {
               <AccordionItem question="How do I initiate a return?">
                 <p className="mb-4">To initiate a return, follow these simple steps:</p>
                 <ol className="list-decimal pl-5 space-y-2">
-                  <li>Email our concierge desk at care@bhagalpurresham.com with your order number.</li>
+                  <li>Email our concierge desk at {import.meta.env.VITE_SUPPORT_EMAIL} with your order number.</li>
                   <li>Carefully fold the saree and place it back into its original muslin wrapping.</li>
                   <li>We will arrange a complimentary courier pickup within 48 hours of approval.</li>
                 </ol>

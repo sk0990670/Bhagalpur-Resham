@@ -3,38 +3,45 @@ export const ROLES = {
   CUSTOMER: 'customer',
   ADMIN: 'admin',
   SUPERADMIN: 'superadmin',
+  ARTISAN: 'artisan',
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 /** Order status machine */
 export const ORDER_STATUS = {
-  PENDING: 'pending',
+  PENDING_VERIFICATION: 'pending_verification',
   CONFIRMED: 'confirmed',
-  PROCESSING: 'processing',
+  IN_PRODUCTION: 'in_production',
+  READY_FOR_SHIPPING: 'ready_for_shipping',
   SHIPPED: 'shipped',
-  OUT_FOR_DELIVERY: 'out_for_delivery',
   DELIVERED: 'delivered',
+  PAYMENT_FAILED: 'payment_failed',
   CANCELLED: 'cancelled',
-  REFUNDED: 'refunded',
   RETURN_REQUESTED: 'return_requested',
-  RETURNED: 'returned',
+  RETURN_RECEIVED: 'return_received',
+  INSPECTION_PENDING: 'inspection_pending',
+  REFUND_APPROVED: 'refund_approved',
+  REFUND_REJECTED: 'refund_rejected',
 } as const;
 
 export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
 
 /** Valid order status transitions (admin) */
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['processing', 'cancelled'],
-  processing: ['shipped', 'cancelled'],
-  shipped: ['out_for_delivery'],
-  out_for_delivery: ['delivered'],
+  pending_verification: ['confirmed', 'payment_failed', 'cancelled'],
+  confirmed: ['in_production', 'cancelled'],
+  in_production: ['ready_for_shipping', 'cancelled'],
+  ready_for_shipping: ['shipped', 'cancelled'],
+  shipped: ['delivered'],
   delivered: ['return_requested'],
-  return_requested: ['returned', 'delivered'],
-  returned: ['refunded'],
+  payment_failed: [],
   cancelled: [],
-  refunded: [],
+  return_requested: ['return_received', 'delivered'],
+  return_received: ['inspection_pending'],
+  inspection_pending: ['refund_approved', 'refund_rejected'],
+  refund_approved: [],
+  refund_rejected: [],
 };
 
 /** Payment status */

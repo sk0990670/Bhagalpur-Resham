@@ -77,5 +77,11 @@ class UserController {
     await userService.activateUser(req.params.id as string);
     res.json(ApiResponse.ok('User activated'));
   });
+
+  /** GET /admin/artisans */
+  listAvailableArtisans = asyncHandler(async (req: Request, res: Response) => {
+    const artisans = await userService.listAvailableArtisans();
+    res.json(ApiResponse.ok('Artisans fetched', artisans));
+  });
 }
 export const userController = new UserController();
