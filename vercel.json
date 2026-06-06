@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server/api/index.ts",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 30
+      }
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "client/dist"
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server/api/index.ts"
+    },
+    {
+      "source": "/health",
+      "destination": "/server/api/index.ts"
+    },
+    {
+      "source": "/api-docs/(.*)",
+      "destination": "/server/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
