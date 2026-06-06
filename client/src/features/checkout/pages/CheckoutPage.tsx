@@ -368,7 +368,9 @@ const Checkout = () => {
               }
             } catch (err: any) {
               console.error('[Razorpay] Backend Verification Failed:', err.response?.data || err);
-              showToast(err.response?.data?.message || 'Payment verification failed. Please try again.', 'error');
+              const msg = err.response?.data?.message || 'Payment verification failed. Please try again.';
+              const errors = err.response?.data?.errors ? JSON.stringify(err.response.data.errors) : '';
+              showToast(`${msg} ${errors}`.trim(), 'error');
               setIsSubmitting(false);
               // Do not navigate, let them stay on checkout or go to history to retry
             }

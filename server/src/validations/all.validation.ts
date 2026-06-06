@@ -23,6 +23,7 @@ export const createOrderSchema = z.object({
   shippingMethod: z.enum(['standard', 'express']).default('standard'),
   couponCode: z.string().optional(),
   creditsToRedeem: z.number().int().min(100).optional(),
+  retryOrderId: z.string().min(24).max(24).optional(),
   notes: z.string().max(500).optional(),
   razorpay: z.object({
     razorpayOrderId: z.string(),

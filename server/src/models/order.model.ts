@@ -103,6 +103,13 @@ export interface IStatusHistory {
   updatedBy?: mongoose.Types.ObjectId;
 }
 
+export interface IPaymentAttempt {
+  attemptNumber: number;
+  status: 'initiated' | 'failed' | 'success';
+  gatewayResponse?: string;
+  timestamp: Date;
+}
+
 export interface IOrder extends Document {
   orderId: string;       // Human-readable: ORD-20241024-0001
   user: mongoose.Types.ObjectId;
@@ -114,6 +121,7 @@ export interface IOrder extends Document {
   status: OrderStatus;
   productionStage?: 'assigned' | 'yarn_preparation' | 'dyeing' | 'weaving' | 'finishing' | 'quality_check' | 'ready_for_dispatch' | 'completed';
   statusHistory: IStatusHistory[];
+  paymentAttempts: IPaymentAttempt[];
   trackingNumber?: string;
   trackingUrl?: string;
   courierName?: string;
@@ -213,6 +221,16 @@ const statusHistorySchema = new Schema<IStatusHistory>(
   { _id: false },
 );
 
+const paymentAttemptSchema = new Schema<IPaymentAttempt>(
+  {
+    attemptNumber: { type: Number, required: true },
+    status: { type: String, enum: ['initiated', 'failed', 'success'], required: true },
+    gatewayResponse: { type: String },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
 const orderSchema = new Schema<IOrder>(
   {
     orderId: {
@@ -247,6 +265,7 @@ const orderSchema = new Schema<IOrder>(
       enum: ['assigned', 'yarn_preparation', 'dyeing', 'weaving', 'finishing', 'quality_check', 'ready_for_dispatch', 'completed'],
     },
     statusHistory: [statusHistorySchema],
+    paymentAttempts: { type: [paymentAttemptSchema], default: [] },
     trackingNumber: { type: String, trim: true },
     trackingUrl: { type: String },
     courierName: { type: String },

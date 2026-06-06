@@ -59,6 +59,21 @@ class PaymentService {
 
     if (expectedSig !== data.razorpaySignature) {
       logger.warn(`Payment verification failed for order ${data.orderId}`);
+      
+      const order = await orderRepository.findById(data.orderId);
+      if (order) {
+        await orderRepository.updateById(data.orderId, {
+          $push: {
+            paymentAttempts: {
+              attemptNumber: (order.paymentAttempts?.length || 0) + 1,
+              status: 'failed',
+              gatewayResponse: 'Signature verification failed',
+              timestamp: new Date()
+            }
+          }
+        });
+      }
+      
       throw ApiError.badRequest('Payment verification failed. Invalid signature.');
     }
 

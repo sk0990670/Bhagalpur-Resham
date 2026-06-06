@@ -158,8 +158,18 @@ class OrderService {
           receipt: existingOrder.orderId,
         });
         
+        const attemptNumber = (existingOrder.paymentAttempts?.length || 0) + 1;
+        
         await orderRepository.updateById(existingOrder._id.toString(), {
-          'paymentInfo.razorpayOrderId': rzpOrder.id
+          'paymentInfo.razorpayOrderId': rzpOrder.id,
+          $push: {
+            paymentAttempts: {
+              attemptNumber,
+              status: 'initiated',
+              gatewayResponse: rzpOrder.id,
+              timestamp: new Date()
+            }
+          }
         });
         
         return {
@@ -209,8 +219,14 @@ class OrderService {
         status: paymentStatus,
         razorpayOrderId: rzpOrderResult?.razorpayOrderId,
       },
-      status: orderStatus,
-      statusHistory: [{ status: orderStatus, timestamp: new Date() }],
+      status: orderStatus as any,
+      paymentAttempts: rzpOrderResult ? [{
+        attemptNumber: 1,
+        status: 'initiated',
+        gatewayResponse: rzpOrderResult.razorpayOrderId,
+        timestamp: new Date()
+      }] : [],
+      statusHistory: [{ status: orderStatus as any, timestamp: new Date() }],
       coupon: couponId as any,
     } as any);
 
@@ -234,6 +250,14 @@ class OrderService {
       'paymentInfo.status': order.paymentInfo.method === 'cod' ? 'shipping_paid' : 'paid',
       'pricing.shippingPaid': true,
       'paymentInfo.paidAt': new Date(),
+      $push: {
+        paymentAttempts: {
+          attemptNumber: (order.paymentAttempts?.length || 0) + 1,
+          status: 'success',
+          gatewayResponse: razorpayData ? razorpayData.razorpayPaymentId : 'cod_verified',
+          timestamp: new Date()
+        }
+      }
     };
 
     if (razorpayData) {
