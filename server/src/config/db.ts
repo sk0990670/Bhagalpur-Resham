@@ -10,8 +10,11 @@ export const connectDB = async (): Promise<void> => {
     mongoose.set('strictQuery', true);
 
     const conn = await mongoose.connect(env.db.uri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+      // Critical for serverless: don't buffer commands if not connected
+      bufferCommands: false,
     });
 
     logger.info(`MongoDB connected: ${conn.connection.host}`);

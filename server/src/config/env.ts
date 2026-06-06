@@ -1,7 +1,14 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// On Vercel, env vars are injected directly by the platform.
+// dotenv.config() is only needed for local development.
+// We use try/catch so a missing .env file never crashes production.
+try {
+  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+} catch {
+  // Running on Vercel – env vars already in process.env
+}
 
 const requiredEnvVars = [
   'MONGODB_URI',

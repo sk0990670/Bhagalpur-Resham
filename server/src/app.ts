@@ -21,13 +21,22 @@ const createApp = (): Application => {
 
   // ── Security ──────────────────────────────────────────────
   app.use(helmet());
+  // Allowed origins: localhost (dev) + production Vercel frontend
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    env.clientUrl, // e.g. https://bhagalpur-resham.vercel.app
+  ].filter(Boolean);
+
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        // Allow server-to-server requests (no origin) and all allowed origins
+        if (!origin || allowedOrigins.includes(origin)) {
           callback(null, true);
         } else {
-          callback(null, env.clientUrl);
+          callback(new Error(`CORS: origin '${origin}' not allowed`));
         }
       },
       credentials: true,
