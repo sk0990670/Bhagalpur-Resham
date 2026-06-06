@@ -119,67 +119,121 @@ class EmailService {
     const trackingLink = `${frontendUrl}/orders/${orderDetails.orderId}`;
     const continueShoppingLink = `${frontendUrl}/collections`;
     
-    // We'll build a custom HTML just for Order Confirmation to match the exact requirements
+    // ── Load Assets for Email ────────────────────────────────────────────────────────
+    let leftSvgBuffer: Buffer | null = null;
+    let rightSvgBuffer: Buffer | null = null;
+    let logoBuffer: Buffer | null = null;
+    
+    try {
+      const ROOT = path.join(__dirname, '../assets');
+      if (fs.existsSync(path.join(ROOT, 'invoice-left.svg'))) {
+        let leftSvg = fs.readFileSync(path.join(ROOT, 'invoice-left.svg'), 'utf-8');
+        leftSvg = leftSvg.replace(/fill="#000000"/g, 'fill="#d4af37"').replace(/stroke="#000000"/g, 'stroke="#d4af37"');
+        leftSvgBuffer = Buffer.from(leftSvg, 'utf-8');
+      }
+      if (fs.existsSync(path.join(ROOT, 'invoice-right.svg'))) {
+        let rightSvg = fs.readFileSync(path.join(ROOT, 'invoice-right.svg'), 'utf-8');
+        rightSvg = rightSvg.replace(/fill="#000000"/g, 'fill="#d4af37"').replace(/stroke="#000000"/g, 'stroke="#d4af37"');
+        rightSvgBuffer = Buffer.from(rightSvg, 'utf-8');
+      }
+      if (fs.existsSync(path.join(ROOT, 'bhagalpur_resham_brand_logo.svg'))) {
+        logoBuffer = fs.readFileSync(path.join(ROOT, 'bhagalpur_resham_brand_logo.svg'));
+      } else if (fs.existsSync(path.join(ROOT, 'invoice-logo.png'))) {
+        logoBuffer = fs.readFileSync(path.join(ROOT, 'invoice-logo.png'));
+      }
+    } catch (e) {
+      logger.error('Failed to load email assets', e);
+    }
+    
     const bodyHtml = `
-      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fffaf0; padding: 0; border: 1px solid #eaddd7;">
-        <div style="background-color: #800020; padding: 30px; text-align: center; border-bottom: 4px solid #d4af37;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px;">Bhagalpur Resham</h1>
-          <p style="color: #fce8cd; margin: 10px 0 0 0; font-size: 14px; font-style: italic;">Handwoven Heritage from Bhagalpur</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8F4EE; -webkit-font-smoothing: antialiased;">
+      <div style="font-family: 'Inter', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fffaf0; padding: 0; border: 1px solid #eaddd7;">
+        
+        <!-- HEADER -->
+        <div style="padding: 40px 30px; text-align: center; border-bottom: 2px solid #800020; background-color: #fffaf0;">
+          ${logoBuffer ? `<img src="cid:brand-logo" alt="Bhagalpur Resham Logo" style="width: 80px; height: auto; margin-bottom: 15px;" />` : ''}
+          <h1 style="color: #800020; margin: 0; font-size: 30px; font-family: 'Playfair Display', serif; font-weight: 700; line-height: 1.2;">Bhagalpur Resham</h1>
+          <p style="color: #444444; margin: 8px 0 0 0; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Handwoven Heritage from Bhagalpur</p>
         </div>
         
-        <div style="padding: 40px 30px; background-color: #ffffff; color: #333333;">
-          <h2 style="color: #800020; margin-top: 0; font-size: 22px; text-align: center; margin-bottom: 20px;">Thank you for your patronage!</h2>
-          <p style="font-size: 16px; line-height: 1.6;">Dear ${orderDetails.shippingAddress.name},</p>
-          <p style="font-size: 16px; line-height: 1.6;">We have successfully received your order. Our artisans are preparing your handcrafted masterpiece.</p>
+        <!-- DECORATIVE BORDER -->
+        <div style="text-align: center; padding: 20px 0; background-color: #ffffff;">
+          ${leftSvgBuffer ? `<img src="cid:left-motif" style="width: 60px; height: auto; display: inline-block;" />` : ''}
+          <span style="display: inline-block; width: 60px;"></span>
+          ${rightSvgBuffer ? `<img src="cid:right-motif" style="width: 60px; height: auto; display: inline-block;" />` : ''}
+        </div>
+        
+        <!-- THANK YOU MESSAGE -->
+        <div style="padding: 10px 40px 40px 40px; background-color: #ffffff; color: #333333; text-align: center;">
+          <h2 style="color: #800020; margin-top: 0; font-size: 24px; font-family: 'Playfair Display', serif; margin-bottom: 20px; font-weight: 700;">Thank You, ${orderDetails.shippingAddress.name}</h2>
+          <p style="font-size: 15px; line-height: 1.7; color: #555555; font-family: 'Playfair Display', serif; font-style: italic;">Your handcrafted Bhagalpur silk masterpiece has entered our weaving journey. We are deeply honored by your patronage.</p>
           
-          <div style="background-color: #fdfbf7; border-left: 4px solid #d4af37; padding: 15px; margin: 25px 0;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.8;">
+          <!-- ORDER SUMMARY CARD -->
+          <div style="background-color: #F8F4EE; border: 1px solid #eaddd7; border-radius: 8px; padding: 25px; margin: 35px 0; text-align: left;">
+            <h3 style="color: #800020; font-family: 'Playfair Display', serif; font-size: 18px; margin-top: 0; margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid #d4af37; padding-bottom: 10px;">Order Summary</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.8; font-family: 'Inter', sans-serif;">
               <tr>
-                <td style="color: #555; width: 40%;"><strong>Order Number:</strong></td>
-                <td>${orderDetails.orderId}</td>
+                <td style="color: #555; width: 45%;"><strong>Order Number:</strong></td>
+                <td style="color: #111;">${orderDetails.orderId}</td>
               </tr>
               <tr>
                 <td style="color: #555;"><strong>Invoice Number:</strong></td>
-                <td>${orderDetails.invoiceNumber || 'Pending'}</td>
+                <td style="color: #111;">${orderDetails.invoiceNumber || 'Pending'}</td>
               </tr>
               <tr>
-                <td style="color: #555;"><strong>Grand Total:</strong></td>
-                <td style="font-weight: bold; color: #800020;">₹${orderDetails.pricing.total.toLocaleString()}</td>
+                <td style="color: #555; padding-top: 5px;"><strong>Grand Total:</strong></td>
+                <td style="font-weight: 700; color: #800020; padding-top: 5px;">₹${orderDetails.pricing.total.toLocaleString('en-IN')}</td>
               </tr>
               <tr>
                 <td style="color: #555;"><strong>Payment Method:</strong></td>
-                <td>${orderDetails.paymentInfo?.method.toUpperCase()}</td>
+                <td style="color: #111;">${orderDetails.paymentInfo?.method === 'razorpay' ? 'Razorpay (UPI)' : (orderDetails.paymentInfo?.method?.toUpperCase() || 'COD')}</td>
               </tr>
               <tr>
                 <td style="color: #555;"><strong>Order Status:</strong></td>
-                <td><span style="color: #2e7d32; font-weight: bold;">Confirmed</span></td>
+                <td><span style="color: #2a7a2a; font-weight: 600;">Confirmed</span></td>
               </tr>
               <tr>
                 <td style="color: #555;"><strong>Estimated Delivery:</strong></td>
-                <td>5 - 7 Business Days</td>
+                <td style="color: #111;">5 - 7 Business Days</td>
               </tr>
             </table>
           </div>
 
           ${imagePath ? `
-          <div style="margin: 30px 0; text-align: center; border: 1px solid #eaddd7; padding: 10px; background-color: #f9f9f9;">
-            <p style="font-size: 12px; color: #777; margin-top: 0;">Invoice Preview</p>
-            <img src="cid:invoice-preview" alt="Invoice Preview" style="max-width: 100%; height: auto; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+          <div style="margin: 35px 0; text-align: center; border: 1px solid #eaddd7; padding: 15px; background-color: #F8F4EE; border-radius: 8px;">
+            <p style="font-size: 14px; color: #800020; margin-top: 0; font-family: 'Playfair Display', serif; font-weight: 700; margin-bottom: 15px;">Invoice Preview</p>
+            <img src="cid:invoice-preview" alt="Invoice Preview" style="max-width: 100%; height: auto; border: 1px solid #d4af37; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" />
           </div>
           ` : ''}
 
           <div style="margin-top: 40px; text-align: center; display: flex; flex-direction: column; gap: 15px;">
-            <a href="${trackingLink}" style="display: block; background-color: #800020; color: #ffffff; text-decoration: none; padding: 14px 20px; font-weight: bold; border-radius: 4px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Track Order</a>
-            <a href="${trackingLink}/invoice" style="display: block; background-color: transparent; border: 2px solid #800020; color: #800020; text-decoration: none; padding: 12px 20px; font-weight: bold; border-radius: 4px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Download Invoice</a>
-            <a href="${continueShoppingLink}" style="display: block; color: #800020; text-decoration: underline; font-size: 14px; margin-top: 10px;">Continue Shopping</a>
+            <a href="${trackingLink}" style="display: block; background-color: #800020; color: #ffffff; text-decoration: none; padding: 14px 20px; font-weight: 600; border-radius: 4px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif;">Track Order</a>
+            <a href="${trackingLink}/invoice" style="display: block; background-color: transparent; border: 2px solid #800020; color: #800020; text-decoration: none; padding: 12px 20px; font-weight: 600; border-radius: 4px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif;">Download Invoice</a>
+            <a href="${continueShoppingLink}" style="display: block; color: #800020; text-decoration: underline; font-size: 14px; margin-top: 15px; font-family: 'Inter', sans-serif;">Continue Shopping</a>
           </div>
         </div>
         
-        <div style="background-color: #f9f9f9; padding: 30px; text-align: center; border-top: 1px solid #eeeeee; color: #777777; font-size: 12px;">
-          <p style="margin: 0;">Need help? Reply to this email or contact <a href="mailto:support@bhagalpurresham.com" style="color: #800020;">support@bhagalpurresham.com</a></p>
-          <p style="margin: 10px 0 0 0;">&copy; ${new Date().getFullYear()} Bhagalpur Resham. All rights reserved.</p>
+        <!-- FOOTER -->
+        <div style="background-color: #800020; padding: 35px 30px; text-align: center; color: #ffffff; font-family: 'Inter', sans-serif;">
+          <h4 style="font-family: 'Playfair Display', serif; font-size: 18px; margin: 0 0 5px 0; color: #d4af37;">Bhagalpur Resham</h4>
+          <p style="font-size: 11px; margin: 0 0 20px 0; color: #fce8cd; letter-spacing: 1px; text-transform: uppercase;">Preserving Tradition. Weaving Excellence.</p>
+          
+          <div style="font-size: 12px; line-height: 1.8; color: #fce8cd; border-top: 1px solid rgba(212,175,55,0.3); border-bottom: 1px solid rgba(212,175,55,0.3); padding: 15px 0; margin-bottom: 20px;">
+            <p style="margin: 0;">www.bhagalpurresham.com</p>
+            <p style="margin: 0;">support@bhagalpurresham.com | +91 70048 47226</p>
+          </div>
+          
+          <p style="margin: 0; font-size: 10px; color: rgba(255,255,255,0.5);">&copy; ${new Date().getFullYear()} Bhagalpur Resham. All rights reserved.</p>
         </div>
       </div>
+</body>
+</html>
     `;
 
     const mailOptions: any = {
@@ -189,6 +243,32 @@ class EmailService {
       html: bodyHtml,
       attachments: []
     };
+
+    if (logoBuffer) {
+      mailOptions.attachments.push({
+        filename: 'brand-logo.png',
+        content: logoBuffer,
+        cid: 'brand-logo'
+      });
+    }
+
+    if (leftSvgBuffer) {
+      mailOptions.attachments.push({
+        filename: 'invoice-left.svg',
+        content: leftSvgBuffer,
+        contentType: 'image/svg+xml',
+        cid: 'left-motif'
+      });
+    }
+
+    if (rightSvgBuffer) {
+      mailOptions.attachments.push({
+        filename: 'invoice-right.svg',
+        content: rightSvgBuffer,
+        contentType: 'image/svg+xml',
+        cid: 'right-motif'
+      });
+    }
 
     if (pdfPath && fs.existsSync(pdfPath)) {
       mailOptions.attachments.push({
