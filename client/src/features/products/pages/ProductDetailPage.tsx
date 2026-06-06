@@ -92,7 +92,7 @@ const ProductDetail = () => {
               <img 
                 alt={product.name} 
                 className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 cursor-zoom-in" 
-                src={allImages[activeImageIndex]?.url} 
+                src={allImages[activeImageIndex]} 
               />
               {/* Artisan Badge (Authentic) */}
               {product.badge === 'Authentic Collection' && (
