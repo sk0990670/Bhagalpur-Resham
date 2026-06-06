@@ -217,7 +217,7 @@ const ProductDetail = () => {
                   <span className="material-symbols-outlined transition duration-300 group-open:-rotate-180">expand_more</span>
                 </summary>
                 <div className="p-4 pt-0 text-body-md text-on-surface-variant bg-surface-container-low/50">
-                  Complimentary express shipping globally. As this is a handcrafted piece, slight irregularities are part of its charm. Returns accepted within 14 days in original condition.
+                  Complimentary express shipping globally. As this is a handcrafted piece, slight irregularities are part of its charm. Returns accepted within 7 days in original condition.
                 </div>
               </details>
             </div>
