@@ -273,17 +273,30 @@ export class ArtisanService {
 
   async getDashboardStats() {
     const totalArtisans = await artisanRepository.countDocuments();
-    // Count artisans who have at least 1 active order (in_production or ready_for_shipping)
+    
+    // Count existing artisans who have at least 1 active order
     const activeArtisansResult = await Order.aggregate([
       { $match: { status: { $in: ['in_production', 'ready_for_shipping'] }, assignedArtisan: { $ne: null } } },
       { $group: { _id: '$assignedArtisan' } },
+      { $lookup: { from: 'artisans', localField: '_id', foreignField: '_id', as: 'artisan' } },
+      { $match: { 'artisan.0': { $exists: true } } },
       { $count: 'count' }
     ]);
     const activeArtisans = activeArtisansResult[0]?.count || 0;
-    const productsInProduction = await Order.countDocuments({ status: 'in_production' });
     
-    // Aggregate stats from assignments
+    // Count products in production assigned to valid artisans
+    const productsInProductionResult = await Order.aggregate([
+      { $match: { status: 'in_production', assignedArtisan: { $ne: null } } },
+      { $lookup: { from: 'artisans', localField: 'assignedArtisan', foreignField: '_id', as: 'artisan' } },
+      { $match: { 'artisan.0': { $exists: true } } },
+      { $count: 'count' }
+    ]);
+    const productsInProduction = productsInProductionResult[0]?.count || 0;
+    
+    // Aggregate stats from assignments for valid artisans
     const payoutStats = await assignmentRepository.aggregate([
+      { $lookup: { from: 'artisans', localField: 'artisanId', foreignField: '_id', as: 'artisan' } },
+      { $match: { 'artisan.0': { $exists: true } } },
       {
         $group: {
           _id: null,
@@ -292,16 +305,20 @@ export class ArtisanService {
       }
     ]);
 
-    const delayedProductions = await Order.countDocuments({
-      status: 'in_production',
-      estimatedDelivery: { $lt: new Date() }
-    });
+    // Also filter delayed productions by valid artisans
+    const delayedProductionsResult = await Order.aggregate([
+      { $match: { status: 'in_production', estimatedDelivery: { $lt: new Date() }, assignedArtisan: { $ne: null } } },
+      { $lookup: { from: 'artisans', localField: 'assignedArtisan', foreignField: '_id', as: 'artisan' } },
+      { $match: { 'artisan.0': { $exists: true } } },
+      { $count: 'count' }
+    ]);
+    const delayedProductions = delayedProductionsResult[0]?.count || 0;
 
     return {
       totalArtisans,
       activeArtisans,
       productsInProduction,
-      averageCapacityUtilization: 0, // We could compute this if needed, for now send 0 or placeholder
+      averageCapacityUtilization: 0,
       totalPayoutsThisMonth: payoutStats[0]?.totalPayouts || 0,
       delayedProductions
     };
