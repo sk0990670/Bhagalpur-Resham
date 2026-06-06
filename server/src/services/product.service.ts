@@ -5,6 +5,7 @@ import { getPaginationOptions } from '../utils/pagination';
 import { Request } from 'express';
 import type { CreateProductInput, UpdateProductInput } from '../validations/product.validation';
 import { productQueue } from '../queues/product.queue';
+import { cloudinary } from '../config/cloudinary';
 
 class ProductService {
   async listProducts(req: Request) {
@@ -120,6 +121,22 @@ class ProductService {
   async deleteProduct(id: string) {
     const product = await productRepository.deleteById(id);
     if (!product) throw ApiError.notFound('Product not found');
+    
+    // Delete product images from Cloudinary
+    try {
+      if (product.sku) {
+        const prefix = product.sku.split('-')[0];
+        const folderPath = `bhagalpur-resham/products/${prefix}/${product.sku}`;
+        // Delete all images within the folder
+        await cloudinary.api.delete_resources_by_prefix(folderPath);
+        // Delete the empty folder itself
+        await cloudinary.api.delete_folder(folderPath);
+      }
+    } catch (error) {
+      console.error(`Failed to delete Cloudinary images for product ${product.sku}:`, error);
+      // We don't throw error to client if image deletion fails, as the product is already removed from DB
+    }
+    
     return product;
   }
 

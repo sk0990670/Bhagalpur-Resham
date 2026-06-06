@@ -52,7 +52,8 @@ export const productWorker = new Worker<any>(
               public_id: PUBLIC_ID_MAP[shotType],
               overwrite: true,
               invalidate: true,
-              resource_type: 'image'
+              resource_type: 'image',
+              format: 'webp'
             },
             (error, result) => {
               if (error) return reject(error);
@@ -110,7 +111,8 @@ export const productWorker = new Worker<any>(
                 public_id: PUBLIC_ID_MAP[update.shotType],
                 overwrite: true,
                 invalidate: true,
-                resource_type: 'image'
+                resource_type: 'image',
+                format: 'webp'
               },
               (error, result) => {
                 if (error) return reject(error);

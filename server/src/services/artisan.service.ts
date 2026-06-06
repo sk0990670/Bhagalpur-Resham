@@ -197,7 +197,8 @@ export class ArtisanService {
               public_id: data.artisanId,
               overwrite: true,
               invalidate: true,
-              resource_type: 'image'
+              resource_type: 'image',
+              format: 'webp'
             },
             (error, result) => {
               if (error) return reject(error);
@@ -236,7 +237,8 @@ export class ArtisanService {
               public_id: artisanDoc.artisanId,
               overwrite: true,
               invalidate: true,
-              resource_type: 'image'
+              resource_type: 'image',
+              format: 'webp'
             },
             (error, result) => {
               if (error) {
@@ -268,6 +270,15 @@ export class ArtisanService {
     }
     const artisan = await artisanRepository.findByIdAndDelete(id);
     if (!artisan) throw ApiError.notFound('Artisan not found');
+
+    try {
+      if (artisan.artisanId) {
+        await cloudinary.uploader.destroy(`bhagalpur-resham/artisans/${artisan.artisanId}`);
+      }
+    } catch (error) {
+      console.error(`Failed to delete Cloudinary image for artisan ${artisan.artisanId}:`, error);
+    }
+
     return artisan;
   }
 
