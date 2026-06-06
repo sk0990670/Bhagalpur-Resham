@@ -1,6 +1,6 @@
 import { ArtisanCreditWallet, ArtisanCreditTransaction } from '../models/credit.model';
 import mongoose from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { Order } from '../models/order.model';
 import { ApiError } from '../utils/ApiError';
 
@@ -89,7 +89,7 @@ class CreditService {
     );
 
     const transaction = await ArtisanCreditTransaction.create({
-      transactionId: `TXN-${uuidv4().substring(0,8).toUpperCase()}`,
+      transactionId: `TXN-${crypto.randomUUID().substring(0,8).toUpperCase()}`,
       customerId: userId,
       orderId: orderId,
       type: 'CREDIT_EARNED',
@@ -132,7 +132,7 @@ class CreditService {
     );
 
     const transaction = await ArtisanCreditTransaction.create({
-      transactionId: `TXN-${uuidv4().substring(0,8).toUpperCase()}`,
+      transactionId: `TXN-${crypto.randomUUID().substring(0,8).toUpperCase()}`,
       customerId: userId,
       orderId: orderId,
       type: 'CREDIT_REVERSAL',
@@ -182,7 +182,7 @@ class CreditService {
     if (!wallet) throw new ApiError(400, 'Wallet not found');
 
     const transaction = await ArtisanCreditTransaction.create({
-      transactionId: `TXN-${uuidv4().substring(0,8).toUpperCase()}`,
+      transactionId: `TXN-${crypto.randomUUID().substring(0,8).toUpperCase()}`,
       customerId: userId,
       orderId: orderId,
       type: 'CREDIT_REDEEMED',

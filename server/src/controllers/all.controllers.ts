@@ -12,7 +12,7 @@ import { cmsService } from '../services/cms.service';
 import { paymentService } from '../services/payment.service';
 import { analyticsService } from '../services/analytics.service';
 import { cloudinary } from '../config/cloudinary';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { valkeyClient } from '../config/valkey';
 
 // ── Upload Controller ────────────────────────────────────────
@@ -45,7 +45,7 @@ class UploadController {
       throw ApiError.badRequest('No image file provided');
     }
     
-    const tempId = uuidv4();
+    const tempId = crypto.randomUUID();
     // Save buffer as a base64 string in Valkey (TTL 1 hour)
     const base64Data = req.file.buffer.toString('base64');
     const mimeType = req.file.mimetype;
