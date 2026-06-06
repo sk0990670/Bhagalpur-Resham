@@ -25,7 +25,7 @@ class UploadController {
     // Upload memory buffer to Cloudinary using a stream
     const result: any = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'bhagalpur-resham/products' },
+        { folder: 'bhagalpur-resham/assets' },
         (error, result) => {
           if (error) return reject(error);
           resolve(result);

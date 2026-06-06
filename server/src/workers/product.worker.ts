@@ -29,7 +29,7 @@ export const productWorker = new Worker<any>(
       // 1. Fetch temp images from Valkey and upload to Cloudinary
       const images: Record<string, string> = {};
       const prefix = productData.sku.split('-')[0];
-      const folderPath = `products/${prefix}/${productData.sku}`;
+      const folderPath = `bhagalpur-resham/products/${prefix}/${productData.sku}`;
       const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
 
       for (let i = 0; i < tempImages.length; i++) {
@@ -84,7 +84,7 @@ export const productWorker = new Worker<any>(
 
       const finalImages: Record<string, string> = { ...existingImages };
       const prefix = productSku.split('-')[0];
-      const folderPath = `products/${prefix}/${productSku}`;
+      const folderPath = `bhagalpur-resham/products/${prefix}/${productSku}`;
       const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
 
       // Process new images

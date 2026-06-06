@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { v2: cloudinary } = require('cloudinary');
 const fs = require('fs');
-const https = require('https');
 require('dotenv').config({path: '../versal.env'});
 
 cloudinary.config({
@@ -9,13 +8,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true,
-});
-
-const checkUrl = (url) => new Promise((resolve) => {
-  if (!url) return resolve(false);
-  https.get(url, (res) => {
-    resolve(res.statusCode === 200);
-  }).on('error', () => resolve(false));
 });
 
 const getPublicIdFromUrl = (url) => {
@@ -39,12 +31,41 @@ const getPublicIdFromUrl = (url) => {
   }
 }
 
+const copyOrRename = async (sourcePublicId, targetPublicId) => {
+  try {
+    // If target already exists, just return success
+    try {
+      await cloudinary.api.resource(targetPublicId);
+      return true; // Target already exists
+    } catch(e) {
+      // Target doesn't exist, proceed to rename/copy
+    }
+
+    try {
+      await cloudinary.uploader.rename(sourcePublicId, targetPublicId, { overwrite: true });
+      return true;
+    } catch(err) {
+      if (err.message && err.message.includes('not found')) {
+        // Maybe it was already renamed, let's search if the source exists
+        return false;
+      }
+      throw err;
+    }
+  } catch (e) {
+    console.error(`Error moving ${sourcePublicId} to ${targetPublicId}:`, e.message);
+    return false;
+  }
+};
+
 mongoose.connect(process.env.MONGODB_URI).then(async () => {
   try {
     const db = mongoose.connection.db;
     const products = await db.collection('products').find({}).toArray();
+    
     let updatedCount = 0;
-    const failedMigrations = [];
+    const report = [];
+    
+    console.log(`Processing ${products.length} products...`);
     
     for (const product of products) {
       if (!product.images) continue;
@@ -61,76 +82,70 @@ mongoose.connect(process.env.MONGODB_URI).then(async () => {
         const currentUrl = newImages[key];
         if (!currentUrl) continue;
         
-        // Target filename
         let targetFilename = key;
         if (key === 'fullBody') targetFilename = 'full-body';
         
-        const newFolder = `products/${prefix}/${sku}`;
+        const newFolder = `bhagalpur-resham/products/${prefix}/${sku}`;
         const newPublicId = `${newFolder}/${targetFilename}`;
         const newUrlWebp = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${newPublicId}.webp`;
         
-        // Check if the target is already correctly placed and available
-        if (currentUrl.includes(newPublicId)) {
-           // Wait, what if the database URL uses .jpg but we want .webp?
-           if (!currentUrl.endsWith('.webp')) {
-             newImages[key] = newUrlWebp;
-             modified = true;
-           }
+        if (currentUrl.includes(newPublicId) && currentUrl.endsWith('.webp')) {
+           report.push({
+              sku,
+              name: product.name,
+              oldUrl: currentUrl,
+              newUrl: newUrlWebp,
+              status: 'Skipped',
+              success: true,
+              reason: 'Already in correct format'
+           });
            continue;
         }
 
-        // We need to move it.
         let sourcePublicId = getPublicIdFromUrl(currentUrl);
         
-        // Check if current URL is broken
-        const isOk = await checkUrl(currentUrl);
-        
-        let validAssetFound = false;
-        
-        if (!isOk) {
-           console.log(`[${sku}] ${key} is broken. Attempting recovery...`);
-           // Attempt to search cloudinary
-           try {
-             const searchResult = await cloudinary.search
-                .expression(`folder:bhagalpur-resham/products AND filename:${sourcePublicId.split('/').pop()}`)
-                .execute();
-             if (searchResult.resources.length > 0) {
-               sourcePublicId = searchResult.resources[0].public_id;
-               validAssetFound = true;
-               console.log(`[${sku}] Recovered asset: ${sourcePublicId}`);
-             } else {
-               // Try searching by SKU tag or prefix if possible
-               const searchResult2 = await cloudinary.search
-                 .expression(`folder:bhagalpur-resham/products AND tags=${sku}`)
-                 .execute();
-                 
-               if (searchResult2.resources.length > i) {
-                 sourcePublicId = searchResult2.resources[i].public_id;
-                 validAssetFound = true;
-               }
+        if (sourcePublicId) {
+          console.log(`[${sku}] Moving ${sourcePublicId} -> ${newPublicId}`);
+          
+          const success = await copyOrRename(sourcePublicId, newPublicId);
+          
+          if (success) {
+            newImages[key] = newUrlWebp;
+            modified = true;
+            report.push({
+               sku,
+               name: product.name,
+               oldUrl: currentUrl,
+               newUrl: newUrlWebp,
+               status: 'Migrated',
+               success: true,
+               reason: 'Renamed successfully'
+            });
+          } else {
+             // If source not found, maybe it was a duplicate and deleted, or already missing
+             // Let's attempt to find any resource with this SKU tag as a fallback
+             try {
+                const searchRes = await cloudinary.search.expression(`tags=${sku}`).execute();
+                if (searchRes.resources && searchRes.resources.length > 0) {
+                   const fallbackId = searchRes.resources[0].public_id;
+                   console.log(`[${sku}] Found fallback asset ${fallbackId}`);
+                   await copyOrRename(fallbackId, newPublicId);
+                   newImages[key] = newUrlWebp;
+                   modified = true;
+                   report.push({
+                      sku, name: product.name, oldUrl: currentUrl, newUrl: newUrlWebp, status: 'Recovered', success: true, reason: 'Recovered via tags'
+                   });
+                } else {
+                   report.push({
+                      sku, name: product.name, oldUrl: currentUrl, newUrl: newUrlWebp, status: 'Failed', success: false, reason: 'Source asset not found'
+                   });
+                }
+             } catch(e) {
+                report.push({
+                   sku, name: product.name, oldUrl: currentUrl, newUrl: newUrlWebp, status: 'Failed', success: false, reason: e.message
+                });
              }
-           } catch(e) {
-             console.error(`Search failed for ${sku}`, e.message);
-           }
-        } else {
-           validAssetFound = true;
-        }
-        
-        if (validAssetFound && sourcePublicId) {
-          try {
-             // ensure folder exists by creating dummy or just rename (cloudinary auto creates folders)
-             console.log(`[${sku}] Moving ${sourcePublicId} -> ${newPublicId}`);
-             await cloudinary.uploader.rename(sourcePublicId, newPublicId, { overwrite: true });
-             
-             newImages[key] = newUrlWebp;
-             modified = true;
-          } catch(e) {
-             console.error(`[${sku}] Failed to rename asset:`, e.message);
-             // if it says 'not found', it might already be renamed
-             failedMigrations.push({ sku, key, url: currentUrl, error: e.message });
           }
-        } else {
-          failedMigrations.push({ sku, key, url: currentUrl, error: 'Asset not found or broken' });
         }
       }
       
@@ -140,18 +155,46 @@ mongoose.connect(process.env.MONGODB_URI).then(async () => {
           { $set: { images: newImages } }
         );
         updatedCount++;
-        console.log(`[${sku}] Database updated successfully.`);
       }
     }
     
-    if (failedMigrations.length > 0) {
-       fs.writeFileSync('migration-failed.json', JSON.stringify(failedMigrations, null, 2));
-       console.log(`Written ${failedMigrations.length} failures to migration-failed.json`);
-    }
+    // Deduplication & Cleanup: Delete loose files in bhagalpur-resham/products/
+    console.log(`\nStarting cleanup of loose files in bhagalpur-resham/products/ ...`);
+    let nextCursor = null;
+    let deletedCount = 0;
     
-    console.log(`Successfully migrated ${updatedCount} products to the new organized Cloudinary structure.`);
+    do {
+       const res = await cloudinary.api.resources({
+          type: 'upload',
+          prefix: 'bhagalpur-resham/products/',
+          max_results: 500,
+          next_cursor: nextCursor
+       });
+       
+       const looseFiles = res.resources.filter(r => {
+          // Check if it's directly in bhagalpur-resham/products/ (no subfolders)
+          // public_id is like "bhagalpur-resham/products/image1"
+          const parts = r.public_id.split('/');
+          return parts.length === 3; // bhagalpur-resham, products, filename
+       });
+       
+       if (looseFiles.length > 0) {
+          const publicIds = looseFiles.map(r => r.public_id);
+          console.log(`Deleting ${publicIds.length} loose/duplicate files...`);
+          await cloudinary.api.delete_resources(publicIds);
+          deletedCount += publicIds.length;
+       }
+       
+       nextCursor = res.next_cursor;
+    } while (nextCursor);
+    
+    console.log(`Cleanup complete. Deleted ${deletedCount} loose files.`);
+    
+    fs.writeFileSync('migration-report.json', JSON.stringify(report, null, 2));
+    console.log(`Successfully migrated ${updatedCount} products. Report saved to migration-report.json`);
+    
   } catch(e) {
-    console.error('Error:', e);
+    console.error('Fatal Error:', e);
   } finally {
     process.exit(0);
   }

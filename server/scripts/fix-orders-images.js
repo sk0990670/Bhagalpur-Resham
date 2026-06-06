@@ -14,7 +14,7 @@ async function fixOrders() {
     let modified = false;
     
     order.items = order.items.map(item => {
-      if (item.image && typeof item.image === 'string' && !item.image.includes('full-body.webp') && !item.image.includes('product-placeholder.webp')) {
+      if (item.image && typeof item.image === 'string' && !item.image.includes('bhagalpur-resham/products') && !item.image.includes('product-placeholder.webp')) {
         // e.g. "https://res.cloudinary.com/dmkkta67i/image/upload/v17282828/products/TSS-3VNYMU.jpg"
         // Target: "https://res.cloudinary.com/dmkkta67i/image/upload/products/TSS/TSS-3VNYMU/full-body.webp"
         
@@ -24,7 +24,7 @@ async function fixOrders() {
           const prefixMatch = sku.match(/^([A-Z]+)-/);
           if (prefixMatch) {
             const prefix = prefixMatch[1];
-            item.image = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/products/${prefix}/${sku}/full-body.webp`;
+            item.image = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/bhagalpur-resham/products/${prefix}/${sku}/full-body.webp`;
             modified = true;
           }
         }
