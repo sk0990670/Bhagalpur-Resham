@@ -94,6 +94,7 @@ export interface IUser extends Document {
   updatedAt: Date;
   expertise?: string;
   location?: string;
+  reshamPointsBalance: number;
   // Methods
   comparePassword(candidatePassword: string): Promise<boolean>;
   toSafeObject(): Omit<IUser, 'password' | 'refreshTokens' | 'passwordResetToken' | 'passwordResetExpires'>;
@@ -160,6 +161,7 @@ const userSchema = new Schema<IUser>(
     lastLogin: { type: Date },
     expertise: { type: String }, // For artisans
     location: { type: String },  // For artisans
+    reshamPointsBalance: { type: Number, default: 0 },
   },
   {
     timestamps: true,

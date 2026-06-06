@@ -132,6 +132,10 @@ export interface IOrder extends Document {
   coupon?: mongoose.Types.ObjectId;
   estimatedDelivery?: Date;
   deliveredAt?: Date;
+  rewardCredited: boolean;
+  rewardCreditedAt?: Date;
+  rewardPointsEarned: number;
+  rewardLocked: boolean;
   cancelledAt?: Date;
   cancellationReason?: string;
   notes?: string;        // Admin notes
@@ -276,6 +280,10 @@ const orderSchema = new Schema<IOrder>(
     coupon: { type: Schema.Types.ObjectId, ref: 'Coupon' },
     estimatedDelivery: { type: Date },
     deliveredAt: { type: Date },
+    rewardCredited: { type: Boolean, default: false },
+    rewardCreditedAt: { type: Date },
+    rewardPointsEarned: { type: Number, default: 0 },
+    rewardLocked: { type: Boolean, default: false },
     assignedArtisan: { type: Schema.Types.ObjectId, ref: 'Artisan' },
     cancelledAt: { type: Date },
     cancellationReason: { type: String },

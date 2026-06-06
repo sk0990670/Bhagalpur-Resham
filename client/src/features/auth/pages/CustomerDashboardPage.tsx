@@ -56,8 +56,16 @@ const CustomerDashboard = () => {
   const joinDate = profile.createdAt ? new Date(profile.createdAt).getFullYear() : new Date().getFullYear();
   
   const safeOrders = Array.isArray(orders) ? orders : [];
-  const totalSpend = safeOrders.reduce((sum, o) => sum + (o.pricing?.total || 0), 0);
-  const points = Math.floor(totalSpend * 0.05); // Dummy 5% points logic
+  const points = profile.reshamPointsBalance || 0;
+  
+  // Tier logic based on new rules
+  let tierName = 'Bronze Tier';
+  if (points >= 2000) tierName = 'Gold Tier';
+  else if (points >= 500) tierName = 'Silver Tier';
+  
+  // Future ready
+  const lifetimeEarned = points; // Placeholder until transaction aggregation is added to profile
+  const pointsExpiringSoon = 0;
   
   const activeOrders = safeOrders.filter(o => !['delivered', 'cancelled', 'returned'].includes(o.status));
   const recentOrders = safeOrders.slice(0, 2);
@@ -106,20 +114,46 @@ const CustomerDashboard = () => {
             </div>
             
             {/* Loyalty Points Card */}
-            <div className="w-full md:w-80 bg-primary-container text-on-primary p-8 text-center ambient-shadow relative overflow-hidden">
-              <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#ffe088 1px, transparent 1px)", backgroundSize: "10px 10px" }}></div>
-              <div className="relative z-10">
-                <div className="w-16 h-16 mx-auto mb-4 border-2 border-secondary-fixed-dim rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-4xl text-secondary-container" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-                </div>
-                <h3 className="font-headline-md text-[24px] text-secondary-container mb-1">Gold Tier</h3>
-                <p className="font-body-md text-[14px] text-primary-fixed mb-6">Resham Points Balance</p>
-                <p className="font-headline-xl text-[40px] font-bold text-on-primary mb-2">{points.toLocaleString()}</p>
-                <button className="mt-4 px-6 py-2 bg-transparent border border-secondary-fixed-dim text-secondary-container font-label-caps text-label-caps hover:bg-primary transition-colors w-full cursor-pointer">
-                  Redeem Points
-                </button>
+            {points === 0 ? (
+              <div className="w-full md:w-80 bg-surface-container-low p-8 text-center madhubani-border ambient-shadow relative overflow-hidden flex flex-col items-center justify-center">
+                <span className="material-symbols-outlined text-4xl text-outline-variant mb-4">lock_clock</span>
+                <p className="font-body-md text-on-surface-variant italic leading-relaxed">
+                  Your Resham Rewards will unlock after your delivered orders complete the 7-day heritage protection period.
+                </p>
               </div>
-            </div>
+            ) : (
+              <div className="w-full md:w-80 bg-primary-container text-on-primary p-6 text-center ambient-shadow relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#ffe088 1px, transparent 1px)", backgroundSize: "10px 10px" }}></div>
+                <div className="relative z-10">
+                  <div className="w-12 h-12 mx-auto mb-3 border-2 border-secondary-fixed-dim rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-3xl text-secondary-container" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                  </div>
+                  <h3 className="font-headline-md text-[20px] text-secondary-container mb-1">
+                    {tierName}
+                  </h3>
+                  
+                  <div className="bg-primary/20 rounded p-4 mt-4 mb-4 border border-secondary-fixed-dim/30">
+                    <p className="font-body-md text-[12px] text-primary-fixed mb-1 uppercase tracking-wider">Current Balance</p>
+                    <p className="font-headline-xl text-[36px] font-bold text-on-primary leading-tight">{points.toLocaleString()}</p>
+                  </div>
+                  
+                  <div className="flex justify-between text-left text-[11px] text-primary-fixed mt-4 px-2">
+                    <div>
+                      <p className="opacity-70 uppercase mb-0.5">Lifetime Earned</p>
+                      <p className="font-bold text-[13px] text-on-primary">{lifetimeEarned.toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="opacity-70 uppercase mb-0.5">Expiring Soon</p>
+                      <p className="font-bold text-[13px] text-on-primary">{pointsExpiringSoon}</p>
+                    </div>
+                  </div>
+
+                  <button className="mt-5 px-6 py-2 bg-transparent border border-secondary-fixed-dim text-secondary-container font-label-caps text-label-caps hover:bg-primary transition-colors w-full cursor-pointer">
+                    Redeem Points
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Divider */}

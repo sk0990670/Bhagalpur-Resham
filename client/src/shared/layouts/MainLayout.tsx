@@ -3,6 +3,7 @@ import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../app/store';
 import bhagalpurReshamBrandLogoAsset from '../../assets/bhagalpur_resham_brand_logo.png';
+import NotificationBell from '../components/NotificationBell';
 
 
 const Layout = () => {
@@ -114,6 +115,7 @@ const Layout = () => {
                 </span>
               )}
             </button>
+            <NotificationBell />
             <Link aria-label="Shopping Bag" className="relative text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/cart">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>shopping_bag</span>
               {isAuthenticated && cartCount > 0 && (

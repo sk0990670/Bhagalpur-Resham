@@ -4,6 +4,7 @@ import userRouter from './user.routes';
 import productRouter from './product.routes';
 import { categoryRouter, cartRouter, wishlistRouter, orderRouter, reviewRouter, couponRouter, cmsRouter, bannerRouter, paymentRouter, analyticsRouter, invoiceRouter, artisanRouter } from './all.routes';
 import creditRouter from './credit.routes';
+import notificationRouter from './notification.routes';
 import mongoose from 'mongoose';
 
 /**
@@ -59,6 +60,7 @@ router.use('/analytics', analyticsRouter);
 router.use('/artisans', artisanRouter);
 router.use('/upload', uploadRouter);
 router.use('/credits', creditRouter);
+router.use('/notifications', notificationRouter);
 
 // ── Contact Inquiry (Mock) ────────────────────────────────────
 router.post('/contact', (req: Request, res: Response) => {

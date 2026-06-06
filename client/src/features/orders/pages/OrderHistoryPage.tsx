@@ -130,7 +130,31 @@ const OrderHistory = () => {
                         {order.items[0]?.name}
                         {order.items.length > 1 && ` and ${order.items.length - 1} more item(s)`}
                       </h4>
-                      <p className="font-body-md text-[14px] text-on-surface-variant">Qty: {order.items.reduce((acc: number, i: any) => acc + i.qty, 0)}</p>
+                      <p className="font-body-md text-[14px] text-on-surface-variant mb-2">Qty: {order.items.reduce((acc: number, i: any) => acc + i.qty, 0)}</p>
+                      
+                      {/* Reward Points Status */}
+                      {order.status === 'delivered' && (
+                        <div className="flex flex-col gap-1 mt-2">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-surface-variant border border-outline-variant/30 w-fit">
+                            <span className="material-symbols-outlined text-[14px] text-secondary">stars</span>
+                            <span className="font-label-caps text-[10px] text-on-surface-variant tracking-wider">
+                              Reward Status: {order.rewardCredited ? <span className="text-primary font-bold">POINTS CREDITED</span> : <span className="text-secondary">PENDING RETURN WINDOW</span>}
+                            </span>
+                          </div>
+                          
+                          {order.rewardCredited ? (
+                            <div className="text-[11px] text-on-surface-variant flex gap-3 ml-1 mt-0.5">
+                              <span>Points Earned: <span className="font-bold text-primary">{order.rewardPointsEarned}</span></span>
+                              <span>•</span>
+                              <span>Credited Date: {new Date(order.rewardCreditedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-on-surface-variant ml-1 mt-0.5">
+                              Days Remaining: <span className="font-bold">{order.deliveredAt ? Math.max(0, 7 - Math.floor((Date.now() - new Date(order.deliveredAt).getTime()) / (1000 * 60 * 60 * 24))) : 7}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex flex-col md:flex-row items-center justify-between mt-auto pt-4 border-t border-outline-variant/30 gap-4">
