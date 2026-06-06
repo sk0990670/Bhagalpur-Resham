@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { setCart } from '../../cart/cartSlice';
@@ -692,10 +693,10 @@ const Checkout = () => {
                   return (
                     <div key={item.id} className="flex gap-4 items-start">
                       <div className="w-24 h-32 flex-shrink-0 bg-surface-variant border border-secondary/30 relative overflow-hidden">
-                        {item.product.image ? (
+                        {getProductImage(item.product, 'fullBody') ? (
                           <div 
                             className="absolute inset-0 bg-cover bg-center" 
-                            style={{ backgroundImage: `url('${item.product.image}')` }}
+                            style={{ backgroundImage: `url('${getProductImage(item.product, 'fullBody')}')` }}
                           ></div>
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center text-outline-variant">

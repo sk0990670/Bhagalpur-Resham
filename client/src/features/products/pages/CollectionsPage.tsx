@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import { productService } from '../../../shared/services/product.service';
 import { useWishlist } from '../../wishlist/useWishlist';
 import { useToast } from '../../../shared/hooks/useToast';
@@ -190,7 +191,7 @@ const Collections = () => {
                 No products found in this collection.
               </div>
             ) : currentProducts.map((product) => {
-              const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
+              const primaryImage = getProductImage(product, 'fullBody');
               
               return (
                 <Link key={product._id} to={`/product/${product.sku}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">

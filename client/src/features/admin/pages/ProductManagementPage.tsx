@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import { productService } from '../../../shared/services/product.service';
 import AdminSidebar from '../../../shared/components/AdminSidebar';
 import { AdminHeader } from '../components/AdminHeader';
@@ -215,7 +216,7 @@ const AdminProductManagement = () => {
                                                 }
 
                                                 // New object-based image schema: { fullBody, closeup, micro }
-                                                const primaryImage = product.images?.fullBody || product.images?.closeup || product.images?.micro;
+                                                const primaryImage = getProductImage(product, 'fullBody');
 
                                                 return (
                                                     <tr key={product._id} className="hover:bg-surface-container-low transition-colors group">

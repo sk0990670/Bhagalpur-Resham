@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import ProductFilterSidebar from '../components/ProductFilterSidebar';
 import { productService } from '../../../shared/services/product.service';
 import { useWishlist } from '../../wishlist/useWishlist';
@@ -230,7 +231,7 @@ const ProductSearch = () => {
               ) : (
                 // Products
                 products.map((product) => {
-                  const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
+                  const primaryImage = getProductImage(product, 'fullBody');
                   
                   return (
                     <Link key={product._id} to={`/product/${product.slug}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">

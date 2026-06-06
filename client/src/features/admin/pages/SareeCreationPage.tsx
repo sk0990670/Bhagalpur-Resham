@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import { productService } from '../../../shared/services/product.service';
 import api from '../../../shared/services/api';
 import AdminSidebar from '../../../shared/components/AdminSidebar';
@@ -126,9 +127,9 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                                 { url: '', tempId: '', shotType: 'closeup', isUploading: false, label: 'Close Up Shot' },
                                 { url: '', tempId: '', shotType: 'micro', isUploading: false, label: 'Micro Shot' }
                             ];
-                            const fullBodyUrl = p.images.fullBody || p.images[0]?.url || p.images[0];
-                            const closeupUrl = p.images.closeup || p.images[1]?.url || p.images[1];
-                            const microUrl = p.images.micro || p.images[2]?.url || p.images[2];
+                            const fullBodyUrl = getProductImage(p, 'fullBody');
+                            const closeupUrl = getProductImage(p, 'closeup');
+                            const microUrl = getProductImage(p, 'micro');
 
                             if (fullBodyUrl) {
                                 newImages[0].url = fullBodyUrl;

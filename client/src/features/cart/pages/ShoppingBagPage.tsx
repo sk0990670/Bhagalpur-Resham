@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../useCart';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ToastContainer } from '../../../shared/components/Toast';
 
@@ -68,9 +69,9 @@ const ShoppingBag = () => {
                     {/* Product Image */}
                     <Link to={`/product/${item.product.sku}`} className="shrink-0 group relative overflow-hidden">
                       <div className="w-full md:w-[150px] aspect-[3/4] overflow-hidden rounded bg-surface-container-low">
-                        {item.product.image ? (
+                        {getProductImage(item.product, 'fullBody') ? (
                           <img
-                            src={item.product.image}
+                            src={getProductImage(item.product, 'fullBody')}
                             alt={item.product.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
                             loading="lazy"

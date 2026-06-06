@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { productService } from '../../../shared/services/product.service';
@@ -65,8 +66,12 @@ const ProductDetail = () => {
   }
 
   const isWishlisted = product ? isInWishlist(product._id) : false;
-  const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
-  const allImages = [product.images?.fullBody || product.images?.[0]?.url || product.images?.[0], product.images?.closeup || product.images?.[1]?.url || product.images?.[1], product.images?.micro || product.images?.[2]?.url || product.images?.[2]].filter(Boolean);
+  const primaryImage = getProductImage(product, 'fullBody');
+  const allImages = [
+    getProductImage(product, 'fullBody'),
+    getProductImage(product, 'closeup'),
+    getProductImage(product, 'micro')
+  ];
 
   const handleAddToBag = async () => {
     if (!isAuthenticated) {

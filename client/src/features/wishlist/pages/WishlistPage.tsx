@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getProductImage } from '../../../shared/utils/imageHelper';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { wishlistService } from '../../../shared/services/wishlist.service';
@@ -113,7 +114,7 @@ const WishlistPage = () => {
           /* Wishlist Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {wishlistProducts.map((product) => {
-              const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
+              const primaryImage = getProductImage(product, 'fullBody');
               return (
                 <div key={product._id} className="bg-surface-container-lowest masterpiece-card ambient-shadow flex flex-col group transition-transform duration-300 hover:-translate-y-1">
                   <div className="relative p-4 flex-grow">
