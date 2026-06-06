@@ -319,7 +319,15 @@ const Checkout = () => {
       } else {
         // ONLINE PAYMENT FLOW
         const { razorpayOrderId, amount, currency, keyId } = razorpayData;
-        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || keyId;
+        const razorpayKey = (import.meta.env.VITE_RAZORPAY_KEY_ID && import.meta.env.VITE_RAZORPAY_KEY_ID !== 'undefined') 
+          ? import.meta.env.VITE_RAZORPAY_KEY_ID 
+          : keyId;
+
+        if (!window.Razorpay) {
+          showToast('Payment gateway failed to load. Please disable any adblockers and refresh the page.', 'error');
+          setIsSubmitting(false);
+          return;
+        }
 
         console.log('[Razorpay] Init Order Success:', razorpayData);
         
@@ -329,7 +337,7 @@ const Checkout = () => {
           currency,
           name: 'Bhagalpur Resham',
           description: 'Acquisition of Heritage Handloom',
-          image: '/favicon.png',
+          image: `${window.location.origin}/favicon.png`,
           order_id: razorpayOrderId,
           handler: async function (response: any) {
             try {
@@ -396,7 +404,8 @@ const Checkout = () => {
         rzp.open();
       }
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Failed to initialize order.';
+      console.error('[Checkout Error]:', error);
+      const msg = error.response?.data?.message || error.message || 'Failed to initialize order.';
       const errors = error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : '';
       showToast(`${msg} ${errors}`.trim(), 'error');
       setIsSubmitting(false);
