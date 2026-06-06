@@ -109,7 +109,7 @@ export const paymentRouter = Router();
 paymentRouter.get('/key', paymentController.getKey);
 paymentRouter.post('/create-order', authenticate, paymentController.initOrder); // Renamed from /init for new architecture
 paymentRouter.post('/create-order/:orderId', authenticate, paymentController.createOrder); // Legacy
-paymentRouter.post('/verify', authenticate, validate(createOrderSchema), orderController.placeOrder); // Maps to placeOrder which does Verify -> Create -> Inventory -> Clear Cart
+paymentRouter.post('/verify', authenticate, validate(verifyPaymentSchema), paymentController.verify);
 
 // ── Analytics ─────────────────────────────────────────────────
 export const analyticsRouter = Router();
