@@ -4,6 +4,8 @@ import { getProductImage } from '../../../shared/utils/imageHelper';
 import { productService } from '../../../shared/services/product.service';
 import AdminSidebar from '../../../shared/components/AdminSidebar';
 import { AdminHeader } from '../components/AdminHeader';
+import { useToast } from '../../../shared/hooks/useToast';
+import { ToastContainer } from '../../../shared/components/Toast';
 
 const AdminProductManagement = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -16,6 +18,10 @@ const AdminProductManagement = () => {
 
     const [isOccasionOpen, setIsOccasionOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
+
+    // Delete confirmation state
+    const [productToDelete, setProductToDelete] = useState<{ id: string, name: string } | null>(null);
+    const { toasts, showToast, removeToast } = useToast();
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -34,14 +40,20 @@ const AdminProductManagement = () => {
         fetchProducts();
     }, []);
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
-            try {
-                await productService.deleteProduct(id);
-                setProducts(products.filter(p => p._id !== id));
-            } catch (err: any) {
-                alert('Failed to delete product');
-            }
+    const confirmDelete = (id: string, name: string) => {
+        setProductToDelete({ id, name });
+    };
+
+    const handleDelete = async () => {
+        if (!productToDelete) return;
+        try {
+            await productService.deleteProduct(productToDelete.id);
+            setProducts(products.filter(p => p._id !== productToDelete.id));
+            showToast(`${productToDelete.name} has been successfully deleted`, 'success');
+        } catch (err: any) {
+            showToast('Failed to delete product', 'error');
+        } finally {
+            setProductToDelete(null);
         }
     };
 
@@ -49,8 +61,9 @@ const AdminProductManagement = () => {
         try {
             await productService.updateProduct(id, { isActive: !currentStatus });
             setProducts(products.map(p => p._id === id ? { ...p, isActive: !currentStatus } : p));
+            showToast(`Product visibility ${!currentStatus ? 'enabled' : 'disabled'}`, 'success');
         } catch (err: any) {
-            alert('Failed to update product visibility');
+            showToast('Failed to update product visibility', 'error');
         }
     };
 
@@ -257,7 +270,7 @@ const AdminProductManagement = () => {
                                                                 <Link to={`/admin/inventory/edit/${product._id}`} className="p-2 text-outline hover:text-primary transition-colors" title="Edit">
                                                                     <span className="material-symbols-outlined text-lg">edit</span>
                                                                 </Link>
-                                                                <button onClick={() => handleDelete(product._id)} className="p-2 text-outline hover:text-error transition-colors" title="Delete">
+                                                                <button onClick={() => confirmDelete(product._id, product.name)} className="p-2 text-outline hover:text-error transition-colors cursor-pointer" title="Delete">
                                                                     <span className="material-symbols-outlined text-lg">delete</span>
                                                                 </button>
                                                             </div>
@@ -288,6 +301,39 @@ const AdminProductManagement = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Custom Delete Confirmation Modal */}
+            {productToDelete && (
+                <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all duration-300">
+                    <div 
+                        className="bg-surface-container-lowest rounded-lg shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-8 fade-in duration-300 ease-out border border-outline-variant"
+                    >
+                        <div className="flex items-center gap-4 mb-4 text-error">
+                            <span className="material-symbols-outlined text-3xl">warning</span>
+                            <h3 className="font-headline-md text-xl text-on-background">Confirm Deletion</h3>
+                        </div>
+                        <p className="font-body-md text-on-surface-variant mb-6">
+                            Are you sure you want to delete <span className="font-bold text-on-surface">"{productToDelete.name}"</span>? This action cannot be undone and will permanently remove this product from the inventory.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setProductToDelete(null)}
+                                className="px-5 py-2 rounded font-label-caps text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                            >
+                                CANCEL
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="px-5 py-2 rounded font-label-caps bg-error-container text-on-error-container hover:bg-error hover:text-on-error transition-colors shadow-sm cursor-pointer"
+                            >
+                                DELETE PRODUCT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
         </div>
     );
 };
