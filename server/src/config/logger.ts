@@ -20,8 +20,8 @@ const transports: winston.transport[] = [
   }),
 ];
 
-// Write logs to files in production
-if (env.isProduction) {
+// Skip file logging on Vercel/serverless environments (read-only filesystem)
+if (env.isProduction && !process.env.VERCEL) {
   const logsDir = path.resolve(__dirname, '../../logs');
 
   transports.push(
