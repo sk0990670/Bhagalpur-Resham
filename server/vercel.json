@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "echo 'Skipping Vite build for server'",
+  "outputDirectory": "api",
   "builds": [
     {
       "src": "api/index.ts",
