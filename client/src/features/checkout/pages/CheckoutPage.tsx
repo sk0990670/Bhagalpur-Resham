@@ -85,7 +85,7 @@ const Checkout = () => {
           items: cartItems.map((i) => ({ product: i.product.id, qty: i.quantity })),
           shippingAddress: { pincode: formData.zip },
           paymentMethod,
-          creditsToRedeem: appliedCredits
+          creditsToRedeem: appliedCredits > 0 ? appliedCredits : undefined
         };
         const res = await api.post('/orders/calculate-pricing', payload);
         if (res.data?.data) {
@@ -289,7 +289,7 @@ const Checkout = () => {
           locality: formData.locality
         },
         paymentMethod,
-        creditsToRedeem: appliedCredits
+        creditsToRedeem: appliedCredits > 0 ? appliedCredits : undefined
       };
 
       const requiresOnlinePayment = paymentMethod !== 'cod' || (paymentMethod === 'cod' && pricing.shipping > 0);
@@ -396,7 +396,9 @@ const Checkout = () => {
         rzp.open();
       }
     } catch (error: any) {
-      showToast(error.response?.data?.message || 'Failed to initialize order.', 'error');
+      const msg = error.response?.data?.message || 'Failed to initialize order.';
+      const errors = error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : '';
+      showToast(`${msg} ${errors}`.trim(), 'error');
       setIsSubmitting(false);
     }
   };
