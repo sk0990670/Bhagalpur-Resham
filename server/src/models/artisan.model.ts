@@ -5,7 +5,7 @@ export interface IArtisan extends Document {
   name: string;
   phone: string;
   email: string;
-  photo?: string;
+  image?: string;
   address: string;
   city: string;
   state: string;
@@ -14,10 +14,6 @@ export interface IArtisan extends Document {
   dailyCapacity: number;
   status: 'available' | 'busy' | 'on_leave';
   joiningDate: Date;
-  activeOrders: number;
-  completedOrders: number;
-  averageCompletionTime?: number; // in days
-  qualityRating: number;
   earnings: number;
   bankDetails?: {
     accountName: string;
@@ -36,7 +32,7 @@ const artisanSchema = new Schema<IArtisan>(
     name: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true },
     email: { type: String, trim: true, lowercase: true }, // made optional but unique if provided
-    photo: { type: String },
+    image: { type: String },
     address: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
@@ -49,10 +45,6 @@ const artisanSchema = new Schema<IArtisan>(
       default: 'available',
     },
     joiningDate: { type: Date, default: Date.now },
-    activeOrders: { type: Number, default: 0 },
-    completedOrders: { type: Number, default: 0 },
-    averageCompletionTime: { type: Number, default: 0 },
-    qualityRating: { type: Number, default: 5.0, min: 0, max: 5 },
     earnings: { type: Number, default: 0 },
     bankDetails: {
       accountName: { type: String },

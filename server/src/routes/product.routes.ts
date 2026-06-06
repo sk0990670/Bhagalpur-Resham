@@ -65,7 +65,6 @@ router.get('/:id', productController.getProductById);
 router.post('/', authenticate, authorize('admin', 'superadmin'), validate(createProductSchema), productController.createProduct);
 router.patch('/:id', authenticate, authorize('admin', 'superadmin'), validate(updateProductSchema), productController.updateProduct);
 router.delete('/:id', authenticate, authorize('admin', 'superadmin'), productController.deleteProduct);
-router.post('/:id/images', authenticate, authorize('admin', 'superadmin'), productController.addImage);
-router.delete('/:id/images/:publicId', authenticate, authorize('admin', 'superadmin'), productController.removeImage);
+
 
 export default router;

@@ -37,21 +37,7 @@ export class ProductRepository extends BaseRepository<IProduct> {
     ).exec();
   }
 
-  async addImage(productId: string, image: object) {
-    return Product.findByIdAndUpdate(
-      productId,
-      { $push: { images: image } },
-      { new: true }
-    ).exec();
-  }
 
-  async removeImage(productId: string, publicId: string) {
-    return Product.findByIdAndUpdate(
-      productId,
-      { $pull: { images: { publicId } } },
-      { new: true }
-    ).exec();
-  }
 
   async getFeatured(limit = 10) {
     return Product.find({ isFeatured: true, isActive: true, stock: { $gt: 0 } })

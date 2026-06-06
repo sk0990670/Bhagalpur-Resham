@@ -65,8 +65,8 @@ const ProductDetail = () => {
   }
 
   const isWishlisted = product ? isInWishlist(product._id) : false;
-  const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
-  const allImages = product.images || [];
+  const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
+  const allImages = [product.images?.fullBody || product.images?.[0]?.url || product.images?.[0], product.images?.closeup || product.images?.[1]?.url || product.images?.[1], product.images?.micro || product.images?.[2]?.url || product.images?.[2]].filter(Boolean);
 
   const handleAddToBag = async () => {
     if (!isAuthenticated) {
@@ -110,7 +110,7 @@ const ProductDetail = () => {
           </div>
           {allImages.length > 1 && (
             <div className="grid grid-cols-4 gap-4">
-              {allImages.map((img: any, index: number) => (
+              {allImages.map((img: string, index: number) => (
                 <div 
                   key={index} 
                   onClick={() => setActiveImageIndex(index)}
@@ -119,7 +119,7 @@ const ProductDetail = () => {
                   <img 
                     alt={`${product.name} - view ${index + 1}`} 
                     className="w-full h-full object-cover" 
-                    src={img.url} 
+                    src={img} 
                   />
                 </div>
               ))}

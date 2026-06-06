@@ -35,12 +35,10 @@ import { WEAVE_TYPES, WeaveType } from '../utils/constants';
  *         sku: { type: string }
  */
 
-export interface IProductImage {
-  url: string;
-  publicId: string;
-  alt?: string;
-  isPrimary: boolean;
-  shotType?: 'full_body' | 'close_up' | 'micro';
+export interface IProductImages {
+  fullBody: string;
+  closeup?: string;
+  micro?: string;
 }
 
 export interface IProduct extends Document {
@@ -52,7 +50,7 @@ export interface IProduct extends Document {
   price: number;
   discountPrice?: number;
   stock: number;
-  images: IProductImage[];
+  images: IProductImages;
   tags: string[];
   weaveType?: WeaveType;
   weight?: number; // grams
@@ -76,15 +74,13 @@ export interface IProduct extends Document {
   effectivePrice?: number;
 }
 
-const productImageSchema = new Schema<IProductImage>(
+const productImagesSchema = new Schema<IProductImages>(
   {
-    url: { type: String, required: true },
-    publicId: { type: String, required: true },
-    alt: { type: String },
-    isPrimary: { type: Boolean, default: false },
-    shotType: { type: String, enum: ['full_body', 'close_up', 'micro'] },
+    fullBody: { type: String, required: [true, 'Full body image is required'] },
+    closeup: { type: String },
+    micro: { type: String },
   },
-  { _id: false },
+  { _id: false }
 );
 
 const productSchema = new Schema<IProduct>(
@@ -135,7 +131,10 @@ const productSchema = new Schema<IProduct>(
       min: [0, 'Stock cannot be negative'],
       default: 0,
     },
-    images: [productImageSchema],
+    images: {
+      type: productImagesSchema,
+      required: true,
+    },
     tags: [{ type: String, lowercase: true, trim: true }],
     weaveType: {
       type: String,

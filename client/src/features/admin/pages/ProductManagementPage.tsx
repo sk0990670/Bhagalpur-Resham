@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../../../shared/services/product.service';
 import AdminSidebar from '../../../shared/components/AdminSidebar';
+import { AdminHeader } from '../components/AdminHeader';
 
 const AdminProductManagement = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-    
+
     const [searchQuery, setSearchQuery] = useState('');
     const [occasionFilter, setOccasionFilter] = useState('All Occasions');
     const [statusFilter, setStatusFilter] = useState('All Status');
-    
+
     const [isOccasionOpen, setIsOccasionOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
 
@@ -53,7 +54,7 @@ const AdminProductManagement = () => {
     };
 
     const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                               product.sku?.toLowerCase().includes(searchQuery.toLowerCase());
         if (searchQuery && !matchesSearch) return false;
 
@@ -72,68 +73,57 @@ const AdminProductManagement = () => {
         return true;
     });
 
+    if (error) {
+        return (
+            <div className="min-h-screen bg-[#FFF9EC] w-full flex font-body-md text-[#5A403C]">
+                <AdminSidebar />
+                <main className="ml-64 flex-1 flex items-center justify-center">
+                    <p className="text-error">{error}</p>
+                </main>
+            </div>
+        );
+    }
+
     return (
-        <div className="bg-surface text-on-surface font-body-md text-body-md min-h-screen w-full overflow-hidden flex bg-pattern-madhubani">
-            
-            {/*  SideNavBar  */}
+        <div className="min-h-screen bg-[#FFF9EC] w-full flex font-body-md text-[#5A403C]">
             <AdminSidebar />
+            <main className="ml-64 flex-1 flex flex-col h-screen">
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10 bg-[#FFF9EC]">
+                    <div className="max-w-7xl mx-auto space-y-8">
+                        <AdminHeader />
 
-            {/*  Main Content  */}
-            <main className="ml-64 flex-1 flex flex-col h-full overflow-hidden">
-                {/*  TopAppBar (Minimal, Sticky)  */}
-                <header className="bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-30 px-margin-desktop py-4 flex justify-between items-center">
-                    <div className="flex-1 max-w-md relative group">
-                        <span className="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
-                        <input className="w-full bg-transparent border-0 border-b border-outline-variant/50 focus:border-primary focus:ring-0 pl-10 py-2 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 transition-colors outline-none" placeholder="Search orders, artisans, or silk marks..." type="text"/>
-                    </div>
-                    <div className="flex items-center gap-6 text-on-surface-variant">
-                        <button className="relative hover:text-primary transition-colors cursor-pointer active:scale-95">
-                            <span className="material-symbols-outlined" >notifications</span>
-                            <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
-                        </button>
-                        <div className="h-6 w-px bg-outline-variant/50"></div>
-                        <button className="flex items-center gap-3 hover:text-primary transition-colors cursor-pointer active:scale-95">
-                            <span className="material-symbols-outlined" >account_circle</span>
-                            <div className="text-left hidden md:block">
-                                <p className="font-label-caps text-[10px] tracking-wider uppercase text-primary font-bold">Aarav M.</p>
-                                <p className="font-label-caps text-[9px] text-on-surface-variant">Master Weaver</p>
-                            </div>
-                        </button>
-                    </div>
-                </header>
-
-                {/*  Scrollable Canvas  */}
-                <div className="flex-1 overflow-y-auto p-gutter lg:p-margin-desktop bg-surface-container-lowest">
-                    <div className="max-w-container-max mx-auto space-y-section-gap pb-section-gap">
-                        
-                        {/*  Page Header  */}
+                        {/* Page Header */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
                             <div>
                                 <h2 className="font-headline-xl text-headline-xl text-on-background mb-2">Product Management</h2>
                                 <p className="font-body-md text-body-md text-on-surface-variant">Manage your inventory, prices, and stock levels.</p>
                             </div>
-                            <Link className="bg-primary-container text-on-primary hover:bg-primary transition-colors duration-300 px-6 py-3 rounded-DEFAULT font-label-caps text-label-caps uppercase flex items-center gap-2 shadow-sm" to="/admin/inventory/new">
+                            <Link
+                                className="bg-primary-container text-on-primary hover:bg-primary transition-colors duration-300 px-6 py-3 rounded-DEFAULT font-label-caps text-label-caps uppercase flex items-center gap-2 shadow-sm"
+                                to="/admin/inventory/new"
+                            >
                                 <span className="material-symbols-outlined">add</span>
                                 Add New Product
                             </Link>
                         </div>
 
-                        {/*  Search and Filter Bar  */}
+                        {/* Search and Filter Bar */}
                         <div className="bg-surface-container-low p-4 rounded-lg border border-outline-variant mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
                             <div className="relative w-full md:w-96">
                                 <span className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-outline">search</span>
-                                <input 
-                                    className="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border-b border-outline text-on-background font-body-md focus:border-primary focus:outline-none transition-colors rounded-t-DEFAULT" 
-                                    placeholder="Search products..." 
+                                <input
+                                    className="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border-b border-outline text-on-background font-body-md focus:border-primary focus:outline-none transition-colors rounded-t-DEFAULT"
+                                    placeholder="Search products..."
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
                             <div className="flex gap-4 w-full md:w-auto">
+                                {/* Occasion Filter */}
                                 <div className="relative flex-1 md:flex-none">
-                                    <div 
-                                        className="w-full min-w-[160px] bg-surface-container-lowest border-b border-outline text-on-background font-body-md py-2 pl-4 pr-3 focus:border-primary focus:outline-none transition-colors rounded-t-DEFAULT cursor-pointer flex items-center justify-between"
+                                    <div
+                                        className="w-full min-w-[160px] bg-surface-container-lowest border-b border-outline text-on-background font-body-md py-2 pl-4 pr-3 cursor-pointer flex items-center justify-between rounded-t-DEFAULT"
                                         onClick={() => setIsOccasionOpen(!isOccasionOpen)}
                                     >
                                         <span className="truncate">{occasionFilter}</span>
@@ -144,13 +134,10 @@ const AdminProductManagement = () => {
                                             <div className="fixed inset-0 z-10" onClick={() => setIsOccasionOpen(false)}></div>
                                             <div className="absolute top-full left-0 w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded shadow-lg z-20 overflow-hidden">
                                                 {['All Occasions', 'Festive', 'Wedding', 'Casual'].map(opt => (
-                                                    <div 
+                                                    <div
                                                         key={opt}
                                                         className={`px-4 py-2 cursor-pointer hover:bg-surface-variant transition-colors ${occasionFilter === opt ? 'bg-surface-variant text-primary font-semibold' : ''}`}
-                                                        onClick={() => {
-                                                            setOccasionFilter(opt);
-                                                            setIsOccasionOpen(false);
-                                                        }}
+                                                        onClick={() => { setOccasionFilter(opt); setIsOccasionOpen(false); }}
                                                     >
                                                         {opt}
                                                     </div>
@@ -159,9 +146,10 @@ const AdminProductManagement = () => {
                                         </>
                                     )}
                                 </div>
+                                {/* Status Filter */}
                                 <div className="relative flex-1 md:flex-none">
-                                    <div 
-                                        className="w-full min-w-[140px] bg-surface-container-lowest border-b border-outline text-on-background font-body-md py-2 pl-4 pr-3 focus:border-primary focus:outline-none transition-colors rounded-t-DEFAULT cursor-pointer flex items-center justify-between"
+                                    <div
+                                        className="w-full min-w-[140px] bg-surface-container-lowest border-b border-outline text-on-background font-body-md py-2 pl-4 pr-3 cursor-pointer flex items-center justify-between rounded-t-DEFAULT"
                                         onClick={() => setIsStatusOpen(!isStatusOpen)}
                                     >
                                         <span className="truncate">{statusFilter}</span>
@@ -172,13 +160,10 @@ const AdminProductManagement = () => {
                                             <div className="fixed inset-0 z-10" onClick={() => setIsStatusOpen(false)}></div>
                                             <div className="absolute top-full left-0 w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded shadow-lg z-20 overflow-hidden">
                                                 {['All Status', 'Active', 'Draft', 'Out of Stock'].map(opt => (
-                                                    <div 
+                                                    <div
                                                         key={opt}
                                                         className={`px-4 py-2 cursor-pointer hover:bg-surface-variant transition-colors ${statusFilter === opt ? 'bg-surface-variant text-primary font-semibold' : ''}`}
-                                                        onClick={() => {
-                                                            setStatusFilter(opt);
-                                                            setIsStatusOpen(false);
-                                                        }}
+                                                        onClick={() => { setStatusFilter(opt); setIsStatusOpen(false); }}
                                                     >
                                                         {opt}
                                                     </div>
@@ -190,7 +175,7 @@ const AdminProductManagement = () => {
                             </div>
                         </div>
 
-                        {/*  Data Table Container  */}
+                        {/* Data Table */}
                         <div className="bg-surface-container-lowest motif-border p-4 shadow-[0_4px_20px_rgba(139,0,0,0.04)]">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse min-w-[800px]">
@@ -219,24 +204,28 @@ const AdminProductManagement = () => {
                                                 const isDraft = !product.isActive;
                                                 const isOutOfStock = product.stock <= 0 && product.isActive;
                                                 const isActive = product.isActive && product.stock > 0;
-                                                
+
                                                 let statusBadge = null;
                                                 if (isDraft) {
                                                     statusBadge = <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-surface-variant text-on-surface-variant border border-outline-variant">Draft</span>;
                                                 } else if (isOutOfStock) {
                                                     statusBadge = <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-error-container text-on-error-container">Out of Stock</span>;
-                                                } else {
+                                                } else if (isActive) {
                                                     statusBadge = <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-fixed text-on-secondary-fixed">Active</span>;
                                                 }
 
-                                                const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+                                                // New object-based image schema: { fullBody, closeup, micro }
+                                                const primaryImage = product.images?.fullBody || product.images?.closeup || product.images?.micro;
 
                                                 return (
                                                     <tr key={product._id} className="hover:bg-surface-container-low transition-colors group">
                                                         <td className="p-4">
                                                             <div className="w-12 h-12 rounded-DEFAULT overflow-hidden border border-outline-variant">
                                                                 {primaryImage ? (
-                                                                    <div className="w-full h-full bg-surface-variant" style={{ backgroundImage: `url("${primaryImage.url}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                                                                    <div
+                                                                        className="w-full h-full bg-surface-variant"
+                                                                        style={{ backgroundImage: `url("${primaryImage}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                                                    />
                                                                 ) : (
                                                                     <div className="w-full h-full bg-surface-variant flex items-center justify-center">
                                                                         <span className="material-symbols-outlined text-outline">image</span>
@@ -247,19 +236,22 @@ const AdminProductManagement = () => {
                                                         <td className="p-4 font-story-serif text-story-serif font-medium">
                                                             <div>{product.weaveType || 'N/A'}</div>
                                                             <div className="text-xs text-on-surface-variant font-body-sm">{product.name}</div>
+                                                            <div className="text-xs font-mono text-primary/70 mt-0.5">{product.sku}</div>
                                                         </td>
                                                         <td className="p-4 text-on-surface-variant">{product.attributes?.occasion || 'N/A'}</td>
-                                                        <td className="p-4">₹ {product.price.toLocaleString()}</td>
+                                                        <td className="p-4">₹ {product.price?.toLocaleString()}</td>
                                                         <td className={`p-4 ${isOutOfStock ? 'text-error' : (product.stock < 5 ? 'text-error font-bold' : '')}`}>
                                                             {isOutOfStock ? '0 in stock' : (product.stock < 5 ? `Low Stock (${product.stock})` : `${product.stock} in stock`)}
                                                         </td>
-                                                        <td className="p-4">
-                                                            {statusBadge}
-                                                        </td>
+                                                        <td className="p-4">{statusBadge}</td>
                                                         <td className="p-4 text-right">
                                                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button onClick={() => handleToggleVisibility(product._id, product.isActive)} className="p-2 text-outline hover:text-primary transition-colors" title={product.isActive ? "Hide Product" : "Show Product"}>
-                                                                    <span className="material-symbols-outlined text-lg">{product.isActive ? "visibility" : "visibility_off"}</span>
+                                                                <button
+                                                                    onClick={() => handleToggleVisibility(product._id, product.isActive)}
+                                                                    className="p-2 text-outline hover:text-primary transition-colors"
+                                                                    title={product.isActive ? 'Hide Product' : 'Show Product'}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-lg">{product.isActive ? 'visibility' : 'visibility_off'}</span>
                                                                 </button>
                                                                 <Link to={`/admin/inventory/edit/${product._id}`} className="p-2 text-outline hover:text-primary transition-colors" title="Edit">
                                                                     <span className="material-symbols-outlined text-lg">edit</span>
@@ -276,16 +268,16 @@ const AdminProductManagement = () => {
                                     </tbody>
                                 </table>
                             </div>
-                            
-                            {/*  Pagination (Simple)  */}
+
+                            {/* Pagination */}
                             {!isLoading && products.length > 0 && (
                                 <div className="mt-6 flex justify-between items-center px-4 border-t border-outline-variant/50 pt-4">
                                     <span className="text-sm text-on-surface-variant">Showing 1 to {products.length} of {products.length} products</span>
                                     <div className="flex gap-2">
-                                        <button className="p-2 border border-outline-variant rounded-DEFAULT text-outline hover:text-primary hover:border-primary transition-colors disabled:opacity-50" disabled={true}>
+                                        <button className="p-2 border border-outline-variant rounded-DEFAULT text-outline hover:text-primary hover:border-primary transition-colors disabled:opacity-50" disabled>
                                             <span className="material-symbols-outlined text-sm">chevron_left</span>
                                         </button>
-                                        <button className="p-2 border border-outline-variant rounded-DEFAULT text-outline hover:text-primary hover:border-primary transition-colors disabled:opacity-50" disabled={true}>
+                                        <button className="p-2 border border-outline-variant rounded-DEFAULT text-outline hover:text-primary hover:border-primary transition-colors disabled:opacity-50" disabled>
                                             <span className="material-symbols-outlined text-sm">chevron_right</span>
                                         </button>
                                     </div>

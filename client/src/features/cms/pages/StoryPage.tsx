@@ -5,6 +5,7 @@ import artisanWeavingLoomAsset from '../../../assets/artisan_weaving_loom.png';
 import artisanHeroAsset from '../../../assets/artisan_hero.png';
 import closeUpAsset from '../../../assets/close_up_of_a_handloom_weaver_s_hands_working_on_a_silk_saree_traditional.png';
 import tussarWeavingAsset from '../../../assets/tussar_silk_weaving.png';
+import storyHeroBgAsset from '../../../assets/story_hero_bg.jpg';
 
 export default function StoryPage() {
   const [stats, setStats] = useState({
@@ -39,19 +40,29 @@ export default function StoryPage() {
   return (
     <main className="bg-surface-container-lowest text-on-surface">
       {/* Hero Section */}
-      <section className="relative w-full h-[80vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img src={artisanWeavingLoomAsset} alt="Master artisan weaving Bhagalpuri silk" className="w-full h-full object-cover object-center opacity-90" />
-          <div className="absolute inset-0 bg-black/40"></div>
-        </div>
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
-          <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-on-primary mb-6 drop-shadow-md">The Story Woven Into Every Thread</h1>
-          <p className="font-body-lg text-body-lg text-surface-container-lowest mb-10 max-w-2xl drop-shadow-sm">
-            For generations, the artisans of Bhagalpur have transformed silk into living heritage.
-          </p>
-          <a href="#journey" className="inline-flex items-center justify-center px-8 py-4 bg-primary-container text-on-secondary font-label-caps text-label-caps hover:bg-tertiary-container transition-colors duration-300 ambient-shadow border border-secondary/20 hover-group">
-            Explore The Journey
-          </a>
+      <section className="relative w-full min-h-[550px] bg-surface-container-highest overflow-hidden flex items-center justify-center">
+        {/* Mobile: Cover background to ensure text fits */}
+        <img src={storyHeroBgAsset} alt="Master artisan weaving Bhagalpuri silk" className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-multiply md:hidden z-0" />
+        {/* Desktop: Flow image to define exact height, no cropping */}
+        <img src={storyHeroBgAsset} alt="Master artisan weaving Bhagalpuri silk" className="hidden md:block w-full h-auto opacity-80 mix-blend-multiply relative z-0" />
+        
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/30 to-transparent z-10 pointer-events-none"></div>
+        
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-margin-mobile md:px-margin-desktop">
+          <div className="max-w-4xl mx-auto flex flex-col items-center mt-12 md:mt-24">
+            <span className="font-label-caps text-label-caps text-secondary mb-4 tracking-widest uppercase">Our Heritage</span>
+            <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-6 drop-shadow-md">The Story Woven Into Every Thread</h1>
+            <p className="font-story-serif text-story-serif text-on-surface mb-10 max-w-2xl drop-shadow-sm">
+              For generations, the artisans of Bhagalpur have transformed raw silk into living heritage, mastering a craft that echoes through time.
+            </p>
+            <button
+                onClick={() => document.getElementById('journey')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-primary text-on-primary px-8 py-4 font-label-caps text-label-caps uppercase tracking-wider hover:bg-primary-container transition-colors duration-300 flex items-center gap-2 rounded-sm shadow-md group"
+              >
+                Explore The Journey
+                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </button>
+          </div>
         </div>
       </section>
       
@@ -90,29 +101,104 @@ export default function StoryPage() {
       </section>
 
       {/* SECTION 2: The Journey of Silk */}
-      <section id="journey" className="py-section-gap bg-surface-container/30 px-margin-mobile md:px-margin-desktop">
-        <div className="max-w-container-max mx-auto text-center mb-16">
-          <h2 className="font-display-lg text-headline-xl text-on-surface mb-4">The Journey of Silk</h2>
-          <div className="w-24 h-1 bg-primary mx-auto"></div>
-        </div>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-          {/* Timeline steps */}
-          {[
-            { step: '01', title: 'Silk Cocoon Selection', desc: 'Carefully handpicking the finest Tussar cocoons.' },
-            { step: '02', title: 'Yarn Preparation', desc: 'Spinning natural fibers into resilient yarn.' },
-            { step: '03', title: 'Dyeing Process', desc: 'Using natural, heritage-inspired dyes.' },
-            { step: '04', title: 'Handloom Weaving', desc: 'Master artisans weaving intricate patterns.' },
-            { step: '05', title: 'Quality Inspection', desc: 'Rigorous checks for authentic perfection.' },
-            { step: '06', title: 'Delivery', desc: 'Bringing a piece of heritage to your home.' }
-          ].map((item, i) => (
-            <div key={i} className="flex flex-col items-center text-center p-6 bg-surface-container-lowest border border-secondary/10 ambient-shadow hover:-translate-y-1 transition-transform duration-300">
-               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl mb-4 border border-primary/20">
-                 {item.step}
-               </div>
-               <h3 className="font-display-sm text-title-lg text-on-surface mb-2">{item.title}</h3>
-               <p className="text-sm text-on-surface-variant">{item.desc}</p>
+      <section id="journey" className="py-section-gap bg-surface-container/30 px-margin-mobile md:px-margin-desktop overflow-hidden">
+        <div className="max-w-container-max mx-auto">
+          {/* Header */}
+          <div className="text-center mb-20">
+            <span className="font-label-caps text-label-caps text-secondary tracking-widest mb-3 block uppercase">From Cocoon to Drape</span>
+            <h2 className="font-display-lg text-headline-xl text-on-surface mb-5">The Journey of Silk</h2>
+            <p className="font-story-serif text-story-serif text-on-surface-variant max-w-xl mx-auto leading-relaxed">
+              Each saree carries within it a story of patience, skill, and tradition — a journey that begins deep in the forests of Jharkhand.
+            </p>
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <div className="h-px w-16 bg-secondary/40"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+              <div className="h-px w-16 bg-secondary/40"></div>
             </div>
-          ))}
+          </div>
+
+          {/* Timeline — alternating layout */}
+          <div className="relative max-w-4xl mx-auto">
+            {/* Vertical spine */}
+            <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-secondary/30 to-transparent"></div>
+
+            {[
+              {
+                step: '01',
+                title: 'Silk Cocoon Selection',
+                desc: 'Deep in the sal forests, tribal communities hand-harvest wild Tussar cocoons — each one chosen with a practiced eye honed over generations. No machine can replicate this discernment.',
+                icon: 'park',
+                side: 'left'
+              },
+              {
+                step: '02',
+                title: 'Reeling & Yarn Spinning',
+                desc: 'The cocoons are carefully boiled and the delicate filament unreeled by hand. A single cocoon yields hundreds of metres of raw, lustrous thread — spun into yarn on traditional wooden charkhas.',
+                icon: 'rotate_right',
+                side: 'right'
+              },
+              {
+                step: '03',
+                title: 'Natural Dyeing',
+                desc: 'Artisans steep the yarn in vats of indigo, pomegranate rind, madder root, and turmeric — recipes passed down through families. The result is a depth of colour that synthetic dyes can never match.',
+                icon: 'water_drop',
+                side: 'left'
+              },
+              {
+                step: '04',
+                title: 'Handloom Weaving',
+                desc: 'At the heart of every Bhagalpur saree is a master weaver seated at a wooden pit-loom. Each shuttle throw is deliberate. Each pattern — a zari border, a Madhubani motif — is memorised, not printed.',
+                icon: 'grid_4x4',
+                side: 'right'
+              },
+              {
+                step: '05',
+                title: 'Quality & Finishing',
+                desc: 'Every piece is stretched, inspected under natural light, and finished by hand. Imperfection is human; inconsistency is not tolerated. The Silk Mark certification is earned, not bought.',
+                icon: 'verified',
+                side: 'left'
+              },
+              {
+                step: '06',
+                title: 'Arriving at Your Door',
+                desc: 'Wrapped in unbleached cotton and sealed with a wax stamp, your saree travels from a weaver\'s hands directly to yours — carrying with it the warmth and intention of its maker.',
+                icon: 'favorite',
+                side: 'right'
+              },
+            ].map((item, i) => (
+              <div key={i} className={`relative flex flex-col md:flex-row items-center gap-8 mb-16 ${item.side === 'right' ? 'md:flex-row-reverse' : ''}`}>
+                {/* Content card */}
+                <div className="flex-1">
+                  <div className={`bg-surface-container-lowest border border-secondary/10 p-8 relative group hover:border-secondary/30 transition-colors duration-500 ${item.side === 'left' ? 'md:mr-10' : 'md:ml-10'}`}>
+                    {/* Corner ornament */}
+                    <div className={`absolute top-0 ${item.side === 'left' ? 'right-0' : 'left-0'} w-6 h-6 border-t-2 border-r-2 border-secondary/20 ${item.side === 'right' ? 'rotate-90' : ''}`}></div>
+                    <div className={`absolute bottom-0 ${item.side === 'left' ? 'left-0' : 'right-0'} w-6 h-6 border-b-2 border-l-2 border-secondary/20 ${item.side === 'right' ? 'rotate-90' : ''}`}></div>
+
+                    <div className="flex items-start gap-4 mb-4">
+                      <span className="font-label-caps text-label-caps text-secondary/60 tracking-widest pt-1">{item.step}</span>
+                      <h3 className="font-display-lg text-title-lg text-on-surface leading-snug">{item.title}</h3>
+                    </div>
+                    <p className="text-base text-on-surface-variant leading-relaxed font-body-md">{item.desc}</p>
+                  </div>
+                </div>
+
+                {/* Centre spine dot */}
+                <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-surface-container-lowest border-2 border-secondary/30 items-center justify-center z-10 shrink-0">
+                  <span className="material-symbols-outlined text-primary text-base">{item.icon}</span>
+                </div>
+
+                {/* Mobile: icon row */}
+                <div className="md:hidden flex items-center gap-3 self-start">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-sm">{item.icon}</span>
+                  </div>
+                </div>
+
+                {/* Spacer for opposite side */}
+                <div className="flex-1 hidden md:block"></div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -134,18 +220,19 @@ export default function StoryPage() {
             {artisans.map((artisan, idx) => (
               <div key={idx} className="bg-surface-container-lowest border border-secondary/20 ambient-shadow group overflow-hidden">
                 <div className="aspect-[4/5] relative overflow-hidden bg-surface-container/50">
-                  {artisan.image ? (
-                    <img src={artisan.image} alt={artisan.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-primary/30">
-                       <span className="material-symbols-outlined text-6xl">person</span>
-                    </div>
-                  )}
+                  <img 
+                    src={artisan.image || '/assets/default-artisan.webp'} 
+                    alt={artisan.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    onError={(e) => { e.currentTarget.src = '/assets/default-artisan.webp'; }} 
+                  />
                 </div>
                 <div className="p-5 text-center">
                   <h3 className="font-display-sm text-title-md text-on-surface">{artisan.name}</h3>
-                  <p className="text-xs uppercase tracking-wider text-primary mb-2 mt-1">{artisan.specialization}</p>
-                  <p className="text-sm text-on-surface-variant">{artisan.experience} Years Exp. | {artisan.location}</p>
+                  <p className="text-xs uppercase tracking-wider text-primary mb-2 mt-1">
+                    {Array.isArray(artisan.specialization) ? artisan.specialization.join(', ') : artisan.specialization}
+                  </p>
+                  <p className="text-sm text-on-surface-variant">{artisan.experienceYears || artisan.experience || 0} Years Exp. | {artisan.city || artisan.location}</p>
                 </div>
               </div>
             ))}
@@ -184,71 +271,73 @@ export default function StoryPage() {
       {/* SECTION 5: Impact on Artisan Families */}
       <section className="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
         <div className="text-center mb-16">
-          <h2 className="font-display-lg text-headline-xl text-on-surface mb-4">Our Artisan Impact</h2>
-          <p className="text-on-surface-variant max-w-2xl mx-auto">Every purchase contributes directly to the welfare and continuation of these traditional weaving families.</p>
+          <span className="font-label-caps text-label-caps text-secondary tracking-widest mb-3 block uppercase">The Human Story</span>
+          <h2 className="font-display-lg text-headline-xl text-on-surface mb-5">Our Artisan Impact</h2>
+          <p className="font-story-serif text-story-serif text-on-surface-variant max-w-xl mx-auto leading-relaxed">
+            Behind every purchase is a family sustained, a tradition continued, a skill honoured.
+          </p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-           <div className="p-8 text-center border border-secondary/20 bg-surface-container-lowest ambient-shadow">
-             <div className="text-4xl md:text-5xl font-display-lg text-primary mb-2">{stats.totalArtisans}</div>
-             <div className="text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant font-bold">Families Supported</div>
-           </div>
-           <div className="p-8 text-center border border-secondary/20 bg-surface-container-lowest ambient-shadow">
-             <div className="text-4xl md:text-5xl font-display-lg text-primary mb-2">{stats.completedOrders.toLocaleString('en-IN')}</div>
-             <div className="text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant font-bold">Orders Completed</div>
-           </div>
-           <div className="p-8 text-center border border-secondary/20 bg-surface-container-lowest ambient-shadow">
-             <div className="text-4xl md:text-5xl font-display-lg text-primary mb-2">{stats.activeArtisans}</div>
-             <div className="text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant font-bold">Active Artisans</div>
-           </div>
-           <div className="p-8 text-center border border-secondary/20 bg-surface-container-lowest ambient-shadow">
-             <div className="text-4xl md:text-5xl font-display-lg text-primary mb-2">{(stats.completedOrders * 1.5).toLocaleString('en-IN')}</div>
-             <div className="text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant font-bold">Heritage Pieces Delivered</div>
-           </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-0 border border-secondary/15 divide-y sm:divide-y-0 sm:divide-x divide-secondary/15 bg-surface-container-lowest">
+           {[
+             { value: stats.totalArtisans, label: 'Weaver Families', sublabel: 'earning a living wage', icon: 'groups' },
+             { value: stats.completedOrders.toLocaleString('en-IN'), label: 'Orders Fulfilled', sublabel: 'since we began', icon: 'package_2' },
+             { value: stats.activeArtisans, label: 'Active Artisans', sublabel: 'on the platform today', icon: 'person_play' },
+             { value: (stats.completedOrders * 1.5).toLocaleString('en-IN'), label: 'Heritage Pieces', sublabel: 'now in loving homes', icon: 'home' },
+           ].map((stat, i) => (
+             <div key={i} className="flex flex-col items-center text-center p-10 group hover:bg-primary/5 transition-colors duration-300 relative">
+               <span className="material-symbols-outlined text-secondary/40 text-3xl mb-4 group-hover:text-secondary transition-colors duration-300">{stat.icon}</span>
+               <div className="font-display-lg text-headline-xl text-primary mb-1 leading-none">{stat.value}</div>
+               <div className="font-label-caps text-label-caps text-on-surface tracking-widest mb-1 uppercase">{stat.label}</div>
+               <div className="text-xs text-on-surface-variant italic">{stat.sublabel}</div>
+               {i < 3 && <div className="absolute right-0 top-1/4 bottom-1/4 hidden md:block w-px bg-secondary/10"></div>}
+             </div>
+           ))}
         </div>
       </section>
 
       {/* SECTION 6: From Loom to Legacy */}
-      <section className="py-16 bg-surface-container/30 border-y border-secondary/20 px-margin-mobile">
-         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4 text-center md:text-left">
-           <div className="flex-1 flex flex-col items-center">
-             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-               <span className="material-symbols-outlined text-3xl text-primary">person</span>
-             </div>
-             <span className="font-label-caps text-sm tracking-widest text-on-surface">Artisan</span>
-           </div>
-           <div className="hidden md:block w-16 lg:w-24 h-[2px] bg-primary/20"></div>
-           <div className="block md:hidden h-8 w-[2px] bg-primary/20"></div>
-           <div className="flex-1 flex flex-col items-center">
-             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-               <span className="material-symbols-outlined text-3xl text-primary">view_comfy</span>
-             </div>
-             <span className="font-label-caps text-sm tracking-widest text-on-surface">Handloom</span>
-           </div>
-           <div className="hidden md:block w-16 lg:w-24 h-[2px] bg-primary/20"></div>
-           <div className="block md:hidden h-8 w-[2px] bg-primary/20"></div>
-           <div className="flex-1 flex flex-col items-center">
-             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-               <span className="material-symbols-outlined text-3xl text-primary">verified</span>
-             </div>
-             <span className="font-label-caps text-sm tracking-widest text-on-surface">Quality Check</span>
-           </div>
-           <div className="hidden md:block w-16 lg:w-24 h-[2px] bg-primary/20"></div>
-           <div className="block md:hidden h-8 w-[2px] bg-primary/20"></div>
-           <div className="flex-1 flex flex-col items-center">
-             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-               <span className="material-symbols-outlined text-3xl text-primary">inventory_2</span>
-             </div>
-             <span className="font-label-caps text-sm tracking-widest text-on-surface">Packaging</span>
-           </div>
-           <div className="hidden md:block w-16 lg:w-24 h-[2px] bg-primary/20"></div>
-           <div className="block md:hidden h-8 w-[2px] bg-primary/20"></div>
-           <div className="flex-1 flex flex-col items-center">
-             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-               <span className="material-symbols-outlined text-3xl text-primary">favorite</span>
-             </div>
-             <span className="font-label-caps text-sm tracking-widest text-on-surface">Customer</span>
-           </div>
-         </div>
+      <section className="py-16 bg-primary px-margin-mobile md:px-margin-desktop relative overflow-hidden">
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 opacity-5">
+          <img src={tussarWeavingAsset} alt="" className="w-full h-full object-cover" />
+        </div>
+        <div className="relative z-10 max-w-container-max mx-auto">
+          <div className="text-center mb-12">
+            <span className="font-label-caps text-label-caps text-secondary tracking-widest mb-3 block uppercase">The Promise</span>
+            <h2 className="font-display-lg text-headline-xl text-on-primary mb-4">From Loom to Your Life</h2>
+            <p className="font-story-serif text-story-serif text-on-primary/70 max-w-xl mx-auto">
+              Every step is touched by human hands and guided by centuries of wisdom.
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-stretch justify-center gap-0">
+            {[
+              { icon: 'person_play', title: 'Artisan', note: 'A named weaver, not a factory' },
+              { icon: 'view_comfy', title: 'Handloom', note: 'Wood, thread, and skill' },
+              { icon: 'verified', title: 'Silk Mark', note: 'Certified authentic' },
+              { icon: 'inventory_2', title: 'Handwrapped', note: 'With care and cotton' },
+              { icon: 'favorite', title: 'To You', note: 'Carrying a maker\'s warmth' },
+            ].map((step, i, arr) => (
+              <div key={i} className="flex md:flex-col items-center gap-4 md:gap-0 flex-1">
+                <div className="flex md:flex-col items-center gap-3 md:gap-0 flex-1 py-6 px-4 border border-white/10 hover:bg-white/5 transition-colors duration-300 text-center">
+                  <div className="w-12 h-12 rounded-full border border-white/20 bg-white/10 flex items-center justify-center shrink-0 md:mb-4 md:mx-auto">
+                    <span className="material-symbols-outlined text-on-primary text-xl">{step.icon}</span>
+                  </div>
+                  <div>
+                    <div className="font-label-caps text-label-caps text-on-primary tracking-widest uppercase mb-1">{step.title}</div>
+                    <div className="text-xs text-on-primary/60 italic">{step.note}</div>
+                  </div>
+                </div>
+                {i < arr.length - 1 && (
+                  <>
+                    <span className="material-symbols-outlined text-on-primary/30 text-xl hidden md:block md:self-center md:-mt-2 rotate-0">arrow_forward</span>
+                    <span className="material-symbols-outlined text-on-primary/30 text-xl md:hidden rotate-90">arrow_downward</span>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* SECTION 7: Gallery of Heritage */}

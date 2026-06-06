@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../../shared/services/api';
 import AdminSidebar from '../../../shared/components/AdminSidebar';
+import { AdminHeader } from '../components/AdminHeader';
 import ArtisanProfileDrawer from '../components/ArtisanProfileDrawer';
 import AddArtisanModal from '../components/AddArtisanModal';
 
@@ -83,7 +84,6 @@ const ArtisanNetworkPage = () => {
               { label: 'Total Artisans', value: stats.totalArtisans, icon: 'groups' },
               { label: 'Active Artisans', value: stats.activeArtisans, icon: 'engineering', color: 'text-secondary' },
               { label: 'In Production', value: stats.productsInProduction, icon: 'precision_manufacturing', color: 'text-primary' },
-              { label: 'Avg Completion (Days)', value: Math.round(stats.averageCompletionTime), icon: 'timer' },
               { label: 'Total Payouts', value: `₹${stats.totalPayoutsThisMonth.toLocaleString()}`, icon: 'payments', color: 'text-secondary' },
               { label: 'Delayed', value: stats.delayedProductions, icon: 'warning', color: 'text-error' },
             ].map((stat, idx) => (
@@ -126,9 +126,8 @@ const ArtisanNetworkPage = () => {
               onChange={e => setSortOption(e.target.value)}
               className="bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:border-primary outline-none"
             >
-              <option value="highest_rated">Highest Rated</option>
+              <option value="highest_rated">Experience</option>
               <option value="lowest_workload">Lowest Workload</option>
-              <option value="fastest">Fastest Artisan</option>
               <option value="most_experienced">Most Experienced</option>
             </select>
           </div>
@@ -144,7 +143,6 @@ const ArtisanNetworkPage = () => {
                   <th className="py-4 px-6 font-label-caps text-xs text-on-surface-variant font-semibold tracking-wider">Specialization</th>
                   <th className="py-4 px-6 font-label-caps text-xs text-on-surface-variant font-semibold tracking-wider text-center">Active Orders</th>
                   <th className="py-4 px-6 font-label-caps text-xs text-on-surface-variant font-semibold tracking-wider text-center">Completed</th>
-                  <th className="py-4 px-6 font-label-caps text-xs text-on-surface-variant font-semibold tracking-wider">Avg Time</th>
                   <th className="py-4 px-6 font-label-caps text-xs text-on-surface-variant font-semibold tracking-wider">Earnings</th>
                   <th className="py-4 px-6 font-label-caps text-xs text-on-surface-variant font-semibold tracking-wider text-center">Status</th>
                   <th className="py-4 px-6 font-label-caps text-xs text-on-surface-variant font-semibold tracking-wider text-right">Actions</th>
@@ -153,11 +151,11 @@ const ArtisanNetworkPage = () => {
               <tbody className="divide-y divide-outline-variant/50">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-on-surface-variant">Loading artisans...</td>
+                    <td colSpan={7} className="py-8 text-center text-on-surface-variant">Loading artisans...</td>
                   </tr>
                 ) : artisans.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-24 text-center">
+                    <td colSpan={7} className="py-24 text-center">
                       <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-4">engineering</span>
                       <h3 className="font-headline-sm text-2xl text-on-surface font-bold mb-2">No artisans have been added yet.</h3>
                       <p className="font-body-md text-on-surface-variant mb-6">Build your artisan network to start assigning orders.</p>
@@ -171,8 +169,12 @@ const ArtisanNetworkPage = () => {
                     <tr key={artisan._id} className="hover:bg-surface-container-low/50 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary">
-                            {artisan.name.charAt(0)}
+                          <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-primary overflow-hidden shrink-0">
+                            {artisan.image ? (
+                              <img src={artisan.image} alt={artisan.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = '/assets/default-artisan.webp'; }} />
+                            ) : (
+                              <img src="/assets/default-artisan.webp" alt="Default Artisan" className="w-full h-full object-cover" />
+                            )}
                           </div>
                           <div>
                             <p className="font-bold text-on-surface">{artisan.name}</p>
@@ -192,8 +194,7 @@ const ArtisanNetworkPage = () => {
                         <span className="font-mono text-on-surface">{artisan.activeOrders} <span className="text-on-surface-variant text-sm">/ {artisan.dailyCapacity}</span></span>
                       </td>
                       <td className="py-4 px-6 text-center font-mono text-on-surface">{artisan.completedOrders}</td>
-                      <td className="py-4 px-6 font-mono text-on-surface">{artisan.averageCompletionTime} days</td>
-                      <td className="py-4 px-6 font-mono text-secondary">₹{artisan.earnings.toLocaleString()}</td>
+                      <td className="py-4 px-6 font-mono text-secondary">₹{artisan.earnings?.toLocaleString() || 0}</td>
                       <td className="py-4 px-6 text-center">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                           artisan.status === 'available' ? 'bg-primary-container text-on-primary-container' :

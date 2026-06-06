@@ -131,4 +131,5 @@ artisanRouter.get('/:id', artisanController.getArtisanById);
 artisanRouter.get('/:id/orders', artisanController.getArtisanOrders);
 artisanRouter.post('/', artisanController.createArtisan);
 artisanRouter.patch('/:id', artisanController.updateArtisan);
+artisanRouter.patch('/assignments/:assignmentId/payment', artisanController.updateAssignmentPayment);
 artisanRouter.delete('/:id', artisanController.deleteArtisan);

@@ -264,6 +264,7 @@ const OrderDrawer: React.FC<OrderDrawerProps> = ({ orderId, isOpen, onClose, onO
                   {selectedArtisanId && (() => {
                     const selected = artisans.find(a => a._id === selectedArtisanId);
                     if (!selected) return null;
+                    const isAtCapacity = selected.activeOrders >= selected.dailyCapacity;
                     return (
                       <div className="mt-4 p-4 border border-primary/30 bg-primary/5 rounded-xl">
                         <div className="flex gap-4">
@@ -271,19 +272,26 @@ const OrderDrawer: React.FC<OrderDrawerProps> = ({ orderId, isOpen, onClose, onO
                             {selected.name.charAt(0)}
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-bold text-primary text-lg">{selected.name}</h4>
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-bold text-primary text-lg">{selected.name}</h4>
+                              {isAtCapacity && (
+                                <span className="px-2 py-1 bg-error text-white text-[10px] rounded uppercase font-bold tracking-wider">FULL CAPACITY</span>
+                              )}
+                            </div>
                             <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-2">{selected.specialization.join(' • ')}</p>
                             <div className="grid grid-cols-2 gap-y-2 text-xs text-on-surface">
-                              <p><span className="text-on-surface-variant">Experience:</span> {selected.experience} Years</p>
-                              <p><span className="text-on-surface-variant">Rating:</span> {selected.qualityRating} ⭐</p>
-                              <p><span className="text-on-surface-variant">Workload:</span> {selected.activeOrders}/{selected.maxCapacity} Active</p>
-                              <p><span className="text-on-surface-variant">Avg. Time:</span> {selected.averageCompletionTime} Days</p>
+                              <p><span className="text-on-surface-variant">Experience:</span> {selected.experienceYears} Years</p>
+                              <p><span className="text-on-surface-variant">Workload:</span> <span className={isAtCapacity ? 'text-error font-bold' : ''}>{selected.activeOrders}/{selected.dailyCapacity} Active</span></p>
                               <p className="col-span-2"><span className="text-on-surface-variant">Total Earnings:</span> ₹{selected.earnings?.toLocaleString()}</p>
                             </div>
                           </div>
                         </div>
-                        <button onClick={handleAssignArtisan} className="w-full mt-6 py-3 bg-secondary text-on-secondary rounded hover:bg-secondary/90 font-label-caps cursor-pointer transition-colors shadow-md">
-                          ASSIGN ARTISAN
+                        <button 
+                          onClick={handleAssignArtisan} 
+                          disabled={isAtCapacity}
+                          className={`w-full mt-6 py-3 rounded font-label-caps transition-colors shadow-md ${isAtCapacity ? 'bg-surface-container-highest text-on-surface-variant cursor-not-allowed' : 'bg-secondary text-on-secondary hover:bg-secondary/90 cursor-pointer'}`}
+                        >
+                          {isAtCapacity ? 'CANNOT ASSIGN (AT CAPACITY)' : 'ASSIGN ARTISAN'}
                         </button>
                       </div>
                     );

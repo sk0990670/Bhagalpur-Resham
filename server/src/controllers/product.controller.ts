@@ -49,14 +49,6 @@ class ProductController {
     res.json(ApiResponse.ok('Product deleted'));
   });
 
-  addImage = asyncHandler(async (req: Request, res: Response) => {
-    const product = await productService.addImage(req.params.id as string, req.body);
-    res.json(ApiResponse.ok('Image added', product));
-  });
 
-  removeImage = asyncHandler(async (req: Request, res: Response) => {
-    const product = await productService.removeImage(req.params.id as string, req.params.publicId as string);
-    res.json(ApiResponse.ok('Image removed', product));
-  });
 }
 export const productController = new ProductController();

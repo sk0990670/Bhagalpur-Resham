@@ -159,7 +159,14 @@ const AdminOrdersManagement = () => {
                                         ) : (
                                             orders.map((order) => (
                                                 <tr key={order._id} className="hover:bg-surface-container-lowest transition-colors group cursor-pointer">
-                                                    <td className="p-6 font-semibold text-primary">{order.orderId}</td>
+                                                    <td className="p-6">
+                                                        <p className="font-semibold text-primary">{order.orderId}</p>
+                                                        {order.items?.length > 0 && (
+                                                            <p className="text-xs text-on-surface-variant font-mono mt-0.5">
+                                                                {order.items.map((item: any) => item.sku).join(', ')}
+                                                            </p>
+                                                        )}
+                                                    </td>
                                                     <td className="p-6">
                                                         <div className="flex items-center gap-3">
                                                             <div>

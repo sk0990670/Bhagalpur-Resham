@@ -37,7 +37,7 @@ class OrderService {
       orderItems.push({
         product: product._id,
         name: product.name,
-        image: product.images[0]?.url ?? '',
+        image: product.images?.fullBody || (product.images as any)?.[0]?.url || (product.images as any)?.[0] || '',
         sku: product.sku,
         price: product.price,
         discountPrice: product.discountPrice,
@@ -317,20 +317,35 @@ class OrderService {
     
     // Create assignment record
     await assignmentRepository.create({
+      assignmentId: `ASN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       orderId: order._id,
       artisanId: artisanId,
       assignedBy: adminId,
-      status: 'pending'
+      status: 'in_progress',
+      currentStage: 'assigned',
+      artisanCharge: 0,
+      amountPaid: 0,
+      remainingAmount: 0,
+      paymentCompleted: false
     });
-
-    // Update artisan's active orders
-    await mongoose.model('Artisan').findByIdAndUpdate(artisanId, { $inc: { activeOrders: 1 } });
     
     return this.updateOrderStatus(orderId, 'in_production', adminId, { note: `Assigned to artisan` });
   }
 
   async updateProductionStage(orderId: string, stage: string, adminId: string) {
+    const order = await orderRepository.findById(orderId);
+    if (!order) throw ApiError.notFound('Order not found');
+
     await orderRepository.updateById(orderId, { $set: { productionStage: stage } });
+    
+    // Sync currentStage to assignment
+    if (order.assignedArtisan) {
+      await assignmentRepository.findOneAndUpdate(
+        { orderId: order._id, artisanId: order.assignedArtisan },
+        { currentStage: stage }
+      );
+    }
+    
     // Keep a note in the status history without changing the main status
     return orderRepository.updateById(orderId, {
       $push: { statusHistory: { status: 'in_production', updatedBy: adminId, timestamp: new Date(), note: `Production stage updated to: ${stage.replace('_', ' ')}` } }
@@ -342,12 +357,9 @@ class OrderService {
     if (order && order.assignedArtisan) {
       await assignmentRepository.findOneAndUpdate(
         { orderId: order._id, artisanId: order.assignedArtisan },
-        { status: 'completed' }
+        { status: 'completed', currentStage: 'ready_for_dispatch' }
       );
-      // Decrease active orders and increase completed orders
-      await mongoose.model('Artisan').findByIdAndUpdate(order.assignedArtisan, { 
-        $inc: { activeOrders: -1, completedOrders: 1 } 
-      });
+      // We no longer update activeOrders or completedOrders statically on the Artisan model
     }
     return this.updateOrderStatus(orderId, 'ready_for_shipping', artisanId, { note: 'Work completed by artisan' });
   }

@@ -15,7 +15,7 @@ export interface CartItem {
     discountPrice?: number;
     gstPercent: number;
     image: string;
-    images?: any[];
+    images?: { fullBody: string; closeup?: string; micro?: string };
     stock: number;
   };
 }

@@ -4,18 +4,19 @@ import { cloudinary } from '../config/cloudinary';
 import { productRepository } from '../repositories/product.repository';
 import slugify from 'slugify';
 import { CreateProductInput, UpdateProductInput } from '../validations/product.validation';
-import { IProductImage } from '../models/product.model';
+import { IProductImages } from '../models/product.model';
 
 interface ProcessProductJob {
   productData: CreateProductInput;
-  tempImages: Array<{ tempId: string, shotType: 'full_body' | 'close_up' | 'micro' }>;
+  tempImages: Array<{ tempId: string, shotType: 'fullBody' | 'closeup' | 'micro' }>;
 }
 
 interface UpdateProductJob {
   productId: string;
+  productSku: string;
   productData: UpdateProductInput;
-  imageUpdates: Array<{ type: 'keep' | 'new', publicId?: string, tempId?: string, shotType: 'full_body' | 'close_up' | 'micro' }>;
-  existingImages: IProductImage[];
+  imageUpdates: Array<{ type: 'keep' | 'new', tempId?: string, shotType: 'fullBody' | 'closeup' | 'micro' }>;
+  existingImages: IProductImages;
 }
 
 export const productWorker = new Worker<any>(
@@ -26,7 +27,11 @@ export const productWorker = new Worker<any>(
       const { productData, tempImages } = job.data as ProcessProductJob;
 
       // 1. Fetch temp images from Valkey and upload to Cloudinary
-      const images = [];
+      const images: Record<string, string> = {};
+      const prefix = productData.sku.split('-')[0];
+      const folderPath = `products/${prefix}/${productData.sku}`;
+      const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
+
       for (let i = 0; i < tempImages.length; i++) {
         const { tempId, shotType } = tempImages[i];
         const imageDataStr = await valkeyClient.get(`temp_image:${tempId}`);
@@ -38,12 +43,17 @@ export const productWorker = new Worker<any>(
         const { data } = JSON.parse(imageDataStr);
         const buffer = Buffer.from(data, 'base64');
 
-        console.log(`[Worker] Uploading image ${i + 1}/${tempImages.length} to Cloudinary...`);
+        console.log(`[Worker] Uploading image ${shotType} to Cloudinary...`);
         
-        // Upload memory buffer to Cloudinary
         const result: any = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: 'bhagalpur-resham/products' },
+            { 
+              folder: folderPath,
+              public_id: PUBLIC_ID_MAP[shotType],
+              overwrite: true,
+              invalidate: true,
+              resource_type: 'image'
+            },
             (error, result) => {
               if (error) return reject(error);
               resolve(result);
@@ -52,14 +62,7 @@ export const productWorker = new Worker<any>(
           uploadStream.end(buffer);
         });
 
-        images.push({
-          url: result.secure_url,
-          publicId: result.public_id,
-          isPrimary: shotType === 'full_body', // Keep isPrimary for storefront backward compatibility
-          shotType,
-        });
-
-        // Cleanup temp image from Valkey
+        images[shotType] = result.secure_url;
         await valkeyClient.del(`temp_image:${tempId}`);
       }
 
@@ -77,26 +80,17 @@ export const productWorker = new Worker<any>(
       
     } else if (job.name === 'update-product') {
       console.log(`[Worker] Processing product update job ${job.id}...`);
-      const { productId, productData, imageUpdates, existingImages } = job.data as UpdateProductJob;
+      const { productId, productSku, productData, imageUpdates, existingImages } = job.data as UpdateProductJob;
 
-      const finalImages = [];
-      const publicIdsToKeep = new Set<string>();
+      const finalImages: Record<string, string> = { ...existingImages };
+      const prefix = productSku.split('-')[0];
+      const folderPath = `products/${prefix}/${productSku}`;
+      const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
 
-      // Process new images and retain kept images
+      // Process new images
       for (let i = 0; i < imageUpdates.length; i++) {
         const update = imageUpdates[i];
-        if (update.type === 'keep' && update.publicId) {
-          const existingImg = existingImages.find((img: IProductImage) => img.publicId === update.publicId);
-          if (existingImg) {
-            finalImages.push({
-              url: existingImg.url,
-              publicId: existingImg.publicId,
-              isPrimary: update.shotType === 'full_body',
-              shotType: update.shotType,
-            });
-            publicIdsToKeep.add(update.publicId);
-          }
-        } else if (update.type === 'new' && update.tempId) {
+        if (update.type === 'new' && update.tempId) {
           const tempId = update.tempId;
           const imageDataStr = await valkeyClient.get(`temp_image:${tempId}`);
           
@@ -108,10 +102,16 @@ export const productWorker = new Worker<any>(
           const { data } = JSON.parse(imageDataStr);
           const buffer = Buffer.from(data, 'base64');
 
-          console.log(`[Worker] Uploading new image for update to Cloudinary...`);
+          console.log(`[Worker] Uploading new image ${update.shotType} to Cloudinary...`);
           const result: any = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-              { folder: 'bhagalpur-resham/products' },
+              { 
+                folder: folderPath,
+                public_id: PUBLIC_ID_MAP[update.shotType],
+                overwrite: true,
+                invalidate: true,
+                resource_type: 'image'
+              },
               (error, result) => {
                 if (error) return reject(error);
                 resolve(result);
@@ -120,26 +120,22 @@ export const productWorker = new Worker<any>(
             uploadStream.end(buffer);
           });
 
-          finalImages.push({
-            url: result.secure_url,
-            publicId: result.public_id,
-            isPrimary: update.shotType === 'full_body',
-            shotType: update.shotType,
-          });
-
+          finalImages[update.shotType] = result.secure_url;
           await valkeyClient.del(`temp_image:${tempId}`);
         }
       }
 
-      // Delete discarded images from Cloudinary
-      for (const oldImg of existingImages) {
-        if (!publicIdsToKeep.has(oldImg.publicId)) {
-          console.log(`[Worker] Deleting old image ${oldImg.publicId} from Cloudinary...`);
+      // Delete discarded images
+      for (const shot of ['fullBody', 'closeup', 'micro'] as const) {
+        const existsInUpdates = imageUpdates.find(u => u.shotType === shot);
+        if (!existsInUpdates && finalImages[shot]) {
+          console.log(`[Worker] Deleting discarded image ${shot} from Cloudinary...`);
           try {
-            await cloudinary.uploader.destroy(oldImg.publicId);
+            await cloudinary.uploader.destroy(`${folderPath}/${PUBLIC_ID_MAP[shot]}`);
           } catch (err) {
-            console.error(`[Worker] Failed to delete image ${oldImg.publicId} from Cloudinary`, err);
+            console.error(`[Worker] Failed to delete image ${shot} from Cloudinary`, err);
           }
+          delete finalImages[shot];
         }
       }
 

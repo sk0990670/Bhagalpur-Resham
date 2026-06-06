@@ -19,6 +19,36 @@ const Collections = () => {
   const [sort, setSort] = useState('newest');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+  // Reset to first page when filters or sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, sort]);
+
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const currentProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const getVisiblePages = () => {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        pages.push(i);
+      } else if (pages[pages.length - 1] !== '...') {
+        pages.push('...');
+      }
+    }
+    return pages;
+  };
+
 
 
   const { toasts, showToast, removeToast } = useToast();
@@ -28,7 +58,7 @@ const Collections = () => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const params: any = {};
+        const params: any = { limit: 1000 };
         if (filters.weaveType.length > 0) params.weaveType = filters.weaveType.join(',');
         if (filters.color.length > 0) params.color = filters.color.join(',');
         if (filters.occasion.length > 0) params.occasion = filters.occasion.join(',');
@@ -102,7 +132,7 @@ const Collections = () => {
         {/* Product Grid */}
         <section className="w-full lg:w-3/4">
           <div className="flex justify-between items-center mb-6">
-            <span className="font-body-md text-body-md text-on-surface-variant">Showing {products.length} items</span>
+            <span className="font-body-md text-body-md text-on-surface-variant">Showing {products.length > 0 ? ((currentPage - 1) * itemsPerPage) + 1 : 0} to {Math.min(currentPage * itemsPerPage, products.length)} of {products.length} items</span>
             <div className="relative flex items-center space-x-2 border-b border-primary/20 pb-1 z-20">
               <span className="font-label-caps text-label-caps text-on-surface">Sort By:</span>
               <div 
@@ -159,8 +189,8 @@ const Collections = () => {
               <div className="col-span-full py-12 text-center text-on-surface-variant font-body-lg">
                 No products found in this collection.
               </div>
-            ) : products.map((product) => {
-              const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+            ) : currentProducts.map((product) => {
+              const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
               
               return (
                 <Link key={product._id} to={`/product/${product.sku}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">
@@ -169,7 +199,7 @@ const Collections = () => {
                       <img 
                         alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                        src={primaryImage.url}
+                        src={primaryImage}
                       />
                     ) : (
                       <div className="w-full h-full bg-surface-variant flex items-center justify-center">
@@ -223,18 +253,41 @@ const Collections = () => {
           </div>
 
           {/* Pagination */}
-          <div className="mt-12 flex justify-center items-center space-x-2">
-            <button aria-label="Previous page" className="w-10 h-10 flex items-center justify-center border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors cursor-pointer">
-              <span className="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button className="w-10 h-10 flex items-center justify-center bg-primary text-on-primary font-label-caps cursor-pointer">1</button>
-            <button className="w-10 h-10 flex items-center justify-center border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors font-label-caps cursor-pointer">2</button>
-            <button className="w-10 h-10 flex items-center justify-center border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors font-label-caps cursor-pointer">3</button>
-            <span className="text-on-surface-variant px-2">...</span>
-            <button aria-label="Next page" className="w-10 h-10 flex items-center justify-center border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors cursor-pointer">
-              <span className="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <div className="mt-12 flex justify-center items-center space-x-2">
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                aria-label="Previous page" 
+                className={`w-10 h-10 flex items-center justify-center border border-outline-variant transition-colors ${currentPage === 1 ? 'text-outline-variant cursor-not-allowed opacity-50' : 'text-on-surface-variant hover:border-secondary hover:text-secondary cursor-pointer'}`}
+              >
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+              
+              {getVisiblePages().map((page, index) => (
+                page === '...' ? (
+                  <span key={`dots-${index}`} className="text-on-surface-variant px-2">...</span>
+                ) : (
+                  <button 
+                    key={page}
+                    onClick={() => handlePageChange(page as number)}
+                    className={`w-10 h-10 flex items-center justify-center font-label-caps cursor-pointer transition-colors ${currentPage === page ? 'bg-primary text-on-primary' : 'border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary'}`}
+                  >
+                    {page}
+                  </button>
+                )
+              ))}
+
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                aria-label="Next page" 
+                className={`w-10 h-10 flex items-center justify-center border border-outline-variant transition-colors ${currentPage === totalPages ? 'text-outline-variant cursor-not-allowed opacity-50' : 'text-on-surface-variant hover:border-secondary hover:text-secondary cursor-pointer'}`}
+              >
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          )}
         </section>
       </div>
     </main>

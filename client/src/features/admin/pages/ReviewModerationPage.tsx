@@ -1,42 +1,17 @@
 import AdminSidebar from '../../../shared/components/AdminSidebar';
+import { AdminHeader } from '../components/AdminHeader';
 import { Link } from 'react-router-dom';
 
 
 const AdminReviewModeration = () => {
     return (
 
-        <div className="bg-surface text-on-surface font-body-md text-body-md min-h-screen w-full overflow-hidden flex bg-pattern-madhubani">
-            
-{/*  SideNavBar  */}
-<AdminSidebar />
-{/*  Main Content  */}
-<main className="ml-64 flex-1 flex flex-col h-full overflow-hidden">
-{/*  TopAppBar (Minimal, Sticky)  */}
-<header className="bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-30 px-margin-desktop py-4 flex justify-between items-center">
-{/*  Search Bar (Left aligned)  */}
-<div className="flex-1 max-w-md relative group">
-<span className="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
-<input className="w-full bg-transparent border-0 border-b border-outline-variant/50 focus:border-primary focus:ring-0 pl-10 py-2 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 transition-colors outline-none" placeholder="Search orders, artisans, or silk marks..." type="text"/>
-</div>
-{/*  Trailing Actions  */}
-<div className="flex items-center gap-6 text-on-surface-variant">
-<button className="relative hover:text-primary transition-colors cursor-pointer active:scale-95">
-<span className="material-symbols-outlined" >notifications</span>
-<span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
-</button>
-<div className="h-6 w-px bg-outline-variant/50"></div>
-<button className="flex items-center gap-3 hover:text-primary transition-colors cursor-pointer active:scale-95">
-<span className="material-symbols-outlined" >account_circle</span>
-<div className="text-left hidden md:block">
-<p className="font-label-caps text-[10px] tracking-wider uppercase text-primary font-bold">Aarav M.</p>
-<p className="font-label-caps text-[9px] text-on-surface-variant">Master Weaver</p>
-</div>
-</button>
-</div>
-</header>
-{/*  Scrollable Canvas  */}
-<div className="flex-1 overflow-y-auto p-gutter lg:p-margin-desktop bg-surface-container-lowest">
-<div className="max-w-container-max mx-auto space-y-section-gap pb-section-gap">
+        <div className="min-h-screen bg-[#FFF9EC] w-full flex font-body-md text-[#5A403C]">
+            <AdminSidebar />
+            <main className="ml-64 flex-1 flex flex-col h-screen">
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10 bg-[#FFF9EC]">
+                    <div className="max-w-7xl mx-auto space-y-8">
+                        <AdminHeader />
 
 
 {/*  Sticky Header (Mobile Only for Sidebar, but keep brand visible)  */}

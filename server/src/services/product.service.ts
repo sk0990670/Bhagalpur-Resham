@@ -87,8 +87,8 @@ class ProductService {
     }
 
     // Fallback if uploading synchronously
-    if (!data.images || data.images.length === 0) {
-      throw ApiError.badRequest('Images are required');
+    if (!data.images || !data.images.fullBody) {
+      throw ApiError.badRequest('Full body image is required');
     }
 
     return productRepository.create({ ...data, slug } as any);
@@ -106,6 +106,7 @@ class ProductService {
     if (data.imageUpdates && data.imageUpdates.some((img: any) => img.type === 'new')) {
       await productQueue.add('update-product', {
         productId: id,
+        productSku: data.sku || product.sku,
         productData: data,
         imageUpdates: data.imageUpdates,
         existingImages: product.images,
@@ -122,13 +123,6 @@ class ProductService {
     return product;
   }
 
-  async addImage(productId: string, image: object) {
-    return productRepository.addImage(productId, image);
-  }
-
-  async removeImage(productId: string, publicId: string) {
-    return productRepository.removeImage(productId, publicId);
-  }
 }
 
 export const productService = new ProductService();

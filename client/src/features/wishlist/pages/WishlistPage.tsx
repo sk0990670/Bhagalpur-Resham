@@ -113,7 +113,7 @@ const WishlistPage = () => {
           /* Wishlist Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {wishlistProducts.map((product) => {
-              const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+              const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
               return (
                 <div key={product._id} className="bg-surface-container-lowest masterpiece-card ambient-shadow flex flex-col group transition-transform duration-300 hover:-translate-y-1">
                   <div className="relative p-4 flex-grow">
@@ -124,7 +124,7 @@ const WishlistPage = () => {
                           <img
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            src={primaryImage.url}
+                            src={primaryImage}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-outline-variant">

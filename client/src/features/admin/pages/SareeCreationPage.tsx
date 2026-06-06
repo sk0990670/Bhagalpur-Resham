@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { productService } from '../../../shared/services/product.service';
 import api from '../../../shared/services/api';
 import AdminSidebar from '../../../shared/components/AdminSidebar';
+import { AdminHeader } from '../components/AdminHeader';
 
 const COLOR_PALETTE = [
   { name: 'Red', bg: 'bg-[#FF0000]' },
@@ -55,13 +56,25 @@ const AdminSareeCreation = () => {
     const [isBadgeDropdownOpen, setIsBadgeDropdownOpen] = useState(false);
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
-    const generateSKU = () => {
-        return 'TSS-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    };
+// Maps each weave type to its canonical SKU prefix
+const SKU_PREFIX: Record<string, string> = {
+    'Pure Tussar Silk Weave':       'TSS',
+    'Ghicha Silk Weave':            'GHC',
+    'Matka Silk Weave':             'MTK',
+    'Dupion Silk Weave':            'DUP',
+    'Cotton-Silk Bhagalpuri Weave': 'CSB',
+    'Zari Bhagalpuri Weave':        'ZAR',
+};
+
+const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
+    const prefix = SKU_PREFIX[weave] || 'SKU';
+    const suffix = Math.random().toString(36).substr(2, 6).toUpperCase();
+    return `${prefix}-${suffix}`;
+};
 
     const [formData, setFormData] = useState({
         name: '',
-        sku: generateSKU(),
+        sku: generateSKU('Pure Tussar Silk Weave'),
         stock: '',
         price: '',
         discountPrice: '',
@@ -78,9 +91,9 @@ const AdminSareeCreation = () => {
     });
 
     const [images, setImages] = useState([
-        { url: '', publicId: '', tempId: '', shotType: 'full_body', isUploading: false, label: 'Full Body Shot *' },
-        { url: '', publicId: '', tempId: '', shotType: 'close_up', isUploading: false, label: 'Close Up Shot *' },
-        { url: '', publicId: '', tempId: '', shotType: 'micro', isUploading: false, label: 'Micro Shot *' }
+        { url: '', tempId: '', shotType: 'fullBody', isUploading: false, label: 'Full Body Shot *' },
+        { url: '', tempId: '', shotType: 'closeup', isUploading: false, label: 'Close Up Shot' },
+        { url: '', tempId: '', shotType: 'micro', isUploading: false, label: 'Micro Shot' }
     ]);
 
     useEffect(() => {
@@ -107,18 +120,28 @@ const AdminSareeCreation = () => {
                             occasion: p.attributes?.occasion || 'Festive',
                             status: p.isActive ? (p.stock === 0 ? 'Out of Stock' : 'Active') : 'Draft',
                         });
-                        if (p.images && p.images.length > 0) {
-                            const newImages = [...images];
-                            p.images.forEach((img: any, idx: number) => {
-                                if (idx < 3) {
-                                    newImages[idx].url = img.url;
-                                    newImages[idx].publicId = img.publicId;
-                                    newImages[idx].tempId = 'existing';
-                                    if (img.shotType) {
-                                        newImages[idx].shotType = img.shotType;
-                                    }
-                                }
-                            });
+                        if (p.images) {
+                            const newImages = [
+                                { url: '', tempId: '', shotType: 'fullBody', isUploading: false, label: 'Full Body Shot *' },
+                                { url: '', tempId: '', shotType: 'closeup', isUploading: false, label: 'Close Up Shot' },
+                                { url: '', tempId: '', shotType: 'micro', isUploading: false, label: 'Micro Shot' }
+                            ];
+                            const fullBodyUrl = p.images.fullBody || p.images[0]?.url || p.images[0];
+                            const closeupUrl = p.images.closeup || p.images[1]?.url || p.images[1];
+                            const microUrl = p.images.micro || p.images[2]?.url || p.images[2];
+
+                            if (fullBodyUrl) {
+                                newImages[0].url = fullBodyUrl;
+                                newImages[0].tempId = 'existing';
+                            }
+                            if (closeupUrl) {
+                                newImages[1].url = closeupUrl;
+                                newImages[1].tempId = 'existing';
+                            }
+                            if (microUrl) {
+                                newImages[2].url = microUrl;
+                                newImages[2].tempId = 'existing';
+                            }
                             setImages(newImages);
                         }
                     }
@@ -182,9 +205,9 @@ const AdminSareeCreation = () => {
             return;
         }
 
-        const emptyImage = images.find(img => !img.tempId.trim() && !img.url.trim());
+        const emptyImage = !images[0].tempId.trim() && !images[0].url.trim();
         if (emptyImage && !id) {
-            setError('Exactly 3 image URLs are required to publish the masterpiece.');
+            setError('The Full Body Shot image is required to publish the masterpiece.');
             return;
         }
 
@@ -212,9 +235,9 @@ const AdminSareeCreation = () => {
                     tempImages: images.filter(img => img.tempId && img.tempId !== 'existing').map(img => ({ tempId: img.tempId, shotType: img.shotType }))
                 }),
                 ...(id && {
-                    imageUpdates: images.map(img => {
+                    imageUpdates: images.filter(img => img.url || img.tempId).map(img => {
                         if (img.tempId === 'existing') {
-                            return { type: 'keep', publicId: img.publicId, shotType: img.shotType };
+                            return { type: 'keep', shotType: img.shotType };
                         }
                         return { type: 'new', tempId: img.tempId, shotType: img.shotType };
                     })
@@ -242,21 +265,7 @@ const AdminSareeCreation = () => {
             <AdminSidebar />
 
             <main className="ml-64 flex-1 flex flex-col h-full overflow-hidden">
-                <header className="bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-30 px-margin-desktop py-4 flex justify-between items-center">
-                    <div className="flex-1 max-w-md relative group">
-                        <span className="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
-                        <input className="w-full bg-transparent border-0 border-b border-outline-variant/50 focus:border-primary focus:ring-0 pl-10 py-2 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 transition-colors outline-none" placeholder="Search orders, artisans, or silk marks..." type="text"/>
-                    </div>
-                    <div className="flex items-center gap-6 text-on-surface-variant">
-                        <button className="flex items-center gap-3 hover:text-primary transition-colors cursor-pointer active:scale-95">
-                            <span className="material-symbols-outlined" >account_circle</span>
-                            <div className="text-left hidden md:block">
-                                <p className="font-label-caps text-[10px] tracking-wider uppercase text-primary font-bold">Aarav M.</p>
-                                <p className="font-label-caps text-[9px] text-on-surface-variant">Master Weaver</p>
-                            </div>
-                        </button>
-                    </div>
-                </header>
+                <AdminHeader />
 
                 <div className="flex-1 overflow-y-auto p-gutter lg:p-margin-desktop bg-surface-container-lowest">
                     <div className="max-w-container-max mx-auto space-y-section-gap pb-section-gap">
@@ -292,7 +301,27 @@ const AdminSareeCreation = () => {
                                         </div>
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">SKU *</label>
-                                            <input name="sku" value={formData.sku} onChange={handleChange} required className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="e.g. TSS-001" type="text"/>
+                                            <div className="flex items-stretch">
+                                                {/* Locked prefix badge */}
+                                                <div className="flex items-center px-3 bg-primary/10 border border-r-0 border-outline-variant font-label-caps text-label-caps text-primary tracking-widest select-none shrink-0">
+                                                    {SKU_PREFIX[formData.weaveType] || 'SKU'}-
+                                                </div>
+                                                {/* Editable suffix */}
+                                                <input
+                                                    name="sku"
+                                                    value={formData.sku.includes('-') ? formData.sku.split('-').slice(1).join('-') : formData.sku}
+                                                    onChange={(e) => {
+                                                        const prefix = SKU_PREFIX[formData.weaveType] || 'SKU';
+                                                        setFormData(prev => ({ ...prev, sku: `${prefix}-${e.target.value.toUpperCase()}` }));
+                                                    }}
+                                                    required
+                                                    maxLength={20}
+                                                    className="flex-1 custom-input font-body-lg text-body-lg text-on-surface focus:ring-0 uppercase tracking-wider"
+                                                    placeholder="KYBEXP"
+                                                    type="text"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-on-surface-variant mt-1">Prefix is fixed by weave type. Only edit the suffix.</p>
                                         </div>
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">Stock Quantity *</label>
@@ -325,13 +354,23 @@ const AdminSareeCreation = () => {
                                                         {['Pure Tussar Silk Weave', 'Ghicha Silk Weave', 'Matka Silk Weave', 'Dupion Silk Weave', 'Cotton-Silk Bhagalpuri Weave', 'Zari Bhagalpuri Weave'].map((weave) => (
                                                             <div 
                                                                 key={weave}
-                                                                className="px-4 py-3 hover:bg-surface-variant cursor-pointer transition-colors font-body-md text-on-surface"
+                                                                className="px-4 py-3 hover:bg-surface-variant cursor-pointer transition-colors font-body-md text-on-surface flex items-center justify-between"
                                                                 onClick={() => {
-                                                                    setFormData(prev => ({ ...prev, weaveType: weave }));
+                                                                    const newPrefix = SKU_PREFIX[weave] || 'SKU';
+                                                                    // Preserve user-typed suffix if any, otherwise generate a new random one
+                                                                    const currentSuffix = formData.sku.includes('-')
+                                                                        ? formData.sku.split('-').slice(1).join('-')
+                                                                        : Math.random().toString(36).substr(2, 6).toUpperCase();
+                                                                    setFormData(prev => ({
+                                                                        ...prev,
+                                                                        weaveType: weave,
+                                                                        sku: `${newPrefix}-${currentSuffix}`
+                                                                    }));
                                                                     setIsWeaveDropdownOpen(false);
                                                                 }}
                                                             >
-                                                                {weave}
+                                                                <span>{weave}</span>
+                                                                <span className="font-label-caps text-label-caps text-secondary/70 text-xs tracking-widest">{SKU_PREFIX[weave]}-</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -387,7 +426,7 @@ const AdminSareeCreation = () => {
 
                                 {/*  Media Upload  */}
                                 <section className="ambient-shadow bg-surface-container-lowest p-6 md:p-10 ornamental-border">
-                                    <h3 className="font-story-serif text-story-serif text-tertiary mb-6 border-b border-outline-variant/30 pb-2">II. Visuals (Exactly 3 Required)</h3>
+                                    <h3 className="font-story-serif text-story-serif text-tertiary mb-6 border-b border-outline-variant/30 pb-2">II. Visuals</h3>
                                     <div className="grid grid-cols-1 gap-6">
                                         {images.map((img, index) => (
                                             <div key={index} className="flex flex-col md:flex-row md:items-center gap-4">

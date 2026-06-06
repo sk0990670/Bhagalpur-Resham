@@ -42,3 +42,8 @@ export const getRecommendedArtisans = asyncHandler(async (req: Request, res: Res
   const artisans = await artisanService.getRecommendedArtisans(skill);
   res.status(200).json({ success: true, data: artisans });
 });
+
+export const updateAssignmentPayment = asyncHandler(async (req: Request, res: Response) => {
+  const assignment = await artisanService.updateAssignmentPayment(req.params.assignmentId as string, req.body);
+  res.status(200).json({ success: true, data: assignment });
+});

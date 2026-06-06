@@ -23,7 +23,9 @@ const AddArtisanModal = ({ isOpen, onClose, onSuccess, artisan }: AddArtisanModa
     accountNumber: '',
     ifscCode: '',
     bankName: '',
-    notes: ''
+    notes: '',
+    tempId: '',
+    imagePreview: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -44,13 +46,16 @@ const AddArtisanModal = ({ isOpen, onClose, onSuccess, artisan }: AddArtisanModa
         accountNumber: artisan.bankDetails?.accountNumber || '',
         ifscCode: artisan.bankDetails?.ifscCode || '',
         bankName: artisan.bankDetails?.bankName || '',
-        notes: artisan.notes || ''
+        notes: artisan.notes || '',
+        tempId: '',
+        imagePreview: artisan.image || ''
       });
     } else if (isOpen) {
       setFormData({
         name: '', phone: '', email: '', address: '', city: '', state: '',
         experienceYears: 0, specialization: '', dailyCapacity: 5,
-        accountName: '', accountNumber: '', ifscCode: '', bankName: '', notes: ''
+        accountName: '', accountNumber: '', ifscCode: '', bankName: '', notes: '',
+        tempId: '', imagePreview: ''
       });
     }
   }, [artisan, isOpen]);
@@ -93,7 +98,8 @@ const AddArtisanModal = ({ isOpen, onClose, onSuccess, artisan }: AddArtisanModa
           ifscCode: formData.ifscCode,
           bankName: formData.bankName
         },
-        notes: formData.notes
+        notes: formData.notes,
+        ...(formData.tempId && { tempId: formData.tempId })
       };
 
       if (artisan) {
@@ -126,18 +132,61 @@ const AddArtisanModal = ({ isOpen, onClose, onSuccess, artisan }: AddArtisanModa
           
           <section>
             <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider">Personal Information</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <label className="block text-xs font-label-caps text-on-surface-variant mb-1">Full Name *</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none" required />
+            <div className="flex items-start gap-6 mb-6">
+              <div className="shrink-0 flex flex-col items-center">
+                <div className="w-24 h-24 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center overflow-hidden relative group">
+                  {formData.imagePreview ? (
+                    <img src={formData.imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="material-symbols-outlined text-outline-variant text-4xl">person</span>
+                  )}
+                  <label className="absolute inset-0 bg-surface/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity backdrop-blur-sm">
+                    <span className="material-symbols-outlined text-on-surface">upload</span>
+                    <span className="text-[10px] font-label-caps text-on-surface font-bold mt-1">Upload</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        
+                        // Set local preview
+                        setFormData(prev => ({ ...prev, imagePreview: URL.createObjectURL(file) }));
+                        
+                        // Upload to temp storage
+                        const uploadData = new FormData();
+                        uploadData.append('image', file);
+                        try {
+                          const res = await api.post('/upload/temp', uploadData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                          });
+                          if (res.data?.success) {
+                            setFormData(prev => ({ ...prev, tempId: res.data.data.tempId }));
+                          }
+                        } catch (err) {
+                          setError('Failed to upload image. Please try again.');
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                <span className="text-[10px] text-on-surface-variant mt-2 uppercase tracking-wider font-bold">Profile Image *</span>
               </div>
-              <div>
-                <label className="block text-xs font-label-caps text-on-surface-variant mb-1">Phone Number *</label>
-                <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none" required />
-              </div>
-              <div>
-                <label className="block text-xs font-label-caps text-on-surface-variant mb-1">Email</label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none" />
+              
+              <div className="flex-1 grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-xs font-label-caps text-on-surface-variant mb-1">Full Name *</label>
+                  <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-label-caps text-on-surface-variant mb-1">Phone Number *</label>
+                  <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-label-caps text-on-surface-variant mb-1">Email</label>
+                  <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none" />
+                </div>
               </div>
             </div>
           </section>

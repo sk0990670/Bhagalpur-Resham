@@ -230,7 +230,7 @@ const ProductSearch = () => {
               ) : (
                 // Products
                 products.map((product) => {
-                  const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+                  const primaryImage = product.images?.fullBody || product.images?.[0]?.url || product.images?.[0] || '';
                   
                   return (
                     <Link key={product._id} to={`/product/${product.slug}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">
@@ -239,7 +239,7 @@ const ProductSearch = () => {
                           <img 
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                            src={primaryImage.url}
+                            src={primaryImage}
                           />
                         ) : (
                           <div className="w-full h-full bg-surface-variant flex items-center justify-center">

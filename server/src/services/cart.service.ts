@@ -26,7 +26,7 @@ class CartService {
           price: p.price,
           discountPrice: p.discountPrice,
           gstPercent: p.gstPercent || 5,
-          image: p.images?.[0]?.url || '',
+          image: p.images?.fullBody || (p.images as any)?.[0]?.url || (p.images as any)?.[0] || '',
           images: p.images,
           stock: p.stock
         }
