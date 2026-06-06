@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../app/store';
 import { useCart } from '../useCart';
 import { getProductImage } from '../../../shared/utils/imageHelper';
 import { useToast } from '../../../shared/hooks/useToast';
@@ -8,6 +11,23 @@ const ShoppingBag = () => {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
   const { toasts, showToast, removeToast } = useToast();
   const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  // Redirect guests to login
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: { pathname: '/cart' },
+          message: 'Please login to view your shopping bag.',
+          icon: 'local_mall',
+        },
+        replace: true,
+      });
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) return null;
 
   const subtotal = cartItems.reduce((acc, item) => {
     const price = item.product.discountPrice || item.product.price;

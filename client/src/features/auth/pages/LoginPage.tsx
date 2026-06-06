@@ -138,10 +138,10 @@ const Login = () => {
             </div>
           )}
 
-          {/* Wishlist redirect message */}
+          {/* Redirect message */}
           {!sessionExpired && redirectMessage && (
             <div className="flex items-center gap-2 bg-secondary-container/30 border border-secondary-container/50 rounded px-4 py-3 mb-4 text-left">
-              <span className="material-symbols-outlined text-secondary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>favorite</span>
+              <span className="material-symbols-outlined text-secondary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>{location.state?.icon || 'favorite'}</span>
               <p className="font-body-md text-body-md text-on-surface text-sm">{redirectMessage}</p>
             </div>
           )}
