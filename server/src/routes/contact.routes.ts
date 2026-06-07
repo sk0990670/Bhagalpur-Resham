@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { contactController } from '../controllers/contact.controller';
-import { protect, admin } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
+import { authorize } from '../middleware/rbac.middleware';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
@@ -20,12 +21,12 @@ router.post('/', contactLimiter, contactController.submitInquiry);
 
 // Admin Routes
 router.route('/')
-  .get(protect, admin, contactController.getInquiries);
+  .get(authenticate, authorize('admin', 'superadmin'), contactController.getInquiries);
 
 router.route('/:id')
-  .delete(protect, admin, contactController.deleteInquiry);
+  .delete(authenticate, authorize('admin', 'superadmin'), contactController.deleteInquiry);
 
 router.route('/:id/status')
-  .put(protect, admin, contactController.updateInquiryStatus);
+  .put(authenticate, authorize('admin', 'superadmin'), contactController.updateInquiryStatus);
 
 export default router;
