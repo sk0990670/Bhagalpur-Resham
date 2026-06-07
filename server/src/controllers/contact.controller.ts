@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Inquiry } from '../models/inquiry.model';
 import { emailService } from '../services/email.service';
-import asyncHandler from 'express-async-handler';
+import { asyncHandler } from '../utils/asyncHandler';
 import { logger } from '../config/logger';
 
 class ContactController {
