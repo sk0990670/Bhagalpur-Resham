@@ -63,7 +63,12 @@ class CartService {
         addedToCartAt: new Date(),
       });
     }
-    await cartRepository.upsertCart(userId, { items } as any);
+    const rawItems = items.map((i: any) => ({
+      product: i.product?._id || i.product,
+      qty: i.qty,
+      addedToCartAt: i.addedToCartAt || new Date()
+    }));
+    await cartRepository.upsertCart(userId, { items: rawItems } as any);
     return this.getCart(userId);
   }
 
@@ -80,7 +85,12 @@ class CartService {
     if (qty > (item.product as any).stock) throw ApiError.badRequest(`Only ${(item.product as any).stock} units available`);
 
     item.qty = qty;
-    await cartRepository.upsertCart(userId, { items: cart.items } as any);
+    const rawItems = cart.items.map((i: any) => ({
+      product: i.product?._id || i.product,
+      qty: i.qty,
+      addedToCartAt: i.addedToCartAt || new Date()
+    }));
+    await cartRepository.upsertCart(userId, { items: rawItems } as any);
     return this.getCart(userId);
   }
 
@@ -88,7 +98,12 @@ class CartService {
     const cart = await cartRepository.findByUser(userId);
     if (!cart) throw ApiError.notFound('Cart not found');
     const items = cart.items.filter((i) => i.product.toString() !== productId && (i.product as any)?._id?.toString() !== productId);
-    await cartRepository.upsertCart(userId, { items } as any);
+    const rawItems = items.map((i: any) => ({
+      product: i.product?._id || i.product,
+      qty: i.qty,
+      addedToCartAt: i.addedToCartAt || new Date()
+    }));
+    await cartRepository.upsertCart(userId, { items: rawItems } as any);
     return this.getCart(userId);
   }
 
