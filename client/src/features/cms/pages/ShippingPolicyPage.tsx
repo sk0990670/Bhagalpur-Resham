@@ -88,7 +88,7 @@ const ShippingPolicy = () => {
               <span className="material-symbols-outlined text-primary text-4xl mb-4" style={{ fontVariationSettings: "'FILL' 0" }}>location_on</span>
               <h3 className="font-headline-md text-[24px] text-primary mb-2">Track Your Heritage</h3>
               <p className="font-body-md text-body-md text-on-surface-variant mb-6">Follow the journey of your silk from our looms to your home.</p>
-              <Link to="/order-tracking" className="inline-flex items-center gap-2 bg-primary text-on-primary px-8 py-3 rounded-sm font-label-caps text-label-caps uppercase tracking-wider hover:bg-tertiary transition-colors duration-300">
+              <Link to="/order-history" className="inline-flex items-center gap-2 bg-primary text-on-primary px-8 py-3 rounded-sm font-label-caps text-label-caps uppercase tracking-wider hover:bg-tertiary transition-colors duration-300">
                 Track Order
                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_forward</span>
               </Link>
