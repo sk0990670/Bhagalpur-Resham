@@ -55,18 +55,15 @@ const productBaseSchema = z.object({
     color: z.enum(COLOR_TYPES),
     occasion: z.enum(['Wedding', 'Festive', 'Casual']),
   }).catchall(z.string()),
-}).refine(
-  (data) => {
-    if (data.discountPrice !== undefined && data.price !== undefined) {
-      return data.discountPrice < data.price;
-    }
-    return true;
-  },
-  {
-    message: 'Discount price must be less than the regular price',
-    path: ['discountPrice'],
+});
+
+// Reusable refinement for discount price
+const refineDiscountPrice = (data: any) => {
+  if (data.discountPrice !== undefined && data.price !== undefined) {
+    return data.discountPrice < data.price;
   }
-);
+  return true;
+};
 
 // Create schema: enforces SKU prefix rule and requires fullBody image
 export const createProductSchema = productBaseSchema.refine(
@@ -85,6 +82,12 @@ export const createProductSchema = productBaseSchema.refine(
     message: 'Full body image is required to create a product',
     path: ['tempImages'],
   }
+).refine(
+  refineDiscountPrice,
+  {
+    message: 'Discount price must be less than the regular price',
+    path: ['discountPrice'],
+  }
 );
 
 // Update schema: all fields optional + image updates, same SKU prefix rule
@@ -99,6 +102,12 @@ export const updateProductSchema = productBaseSchema.partial().extend({
   {
     message: 'SKU prefix must match the weave type (e.g. TSS- for Pure Tussar Silk Weave)',
     path: ['sku'],
+  }
+).refine(
+  refineDiscountPrice,
+  {
+    message: 'Discount price must be less than the regular price',
+    path: ['discountPrice'],
   }
 );
 
