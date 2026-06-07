@@ -10,6 +10,10 @@ import { valkeyClient } from '../config/valkey';
 
 class ProductService {
   async listProducts(req: Request) {
+    const cacheKey = `inventory:list:${req.originalUrl || 'default'}`;
+    const cachedData = await valkeyClient.get(cacheKey);
+    if (cachedData) return JSON.parse(cachedData);
+
     const pagination = getPaginationOptions(req);
     const { search, weaveType, color, occasion, minPrice, maxPrice, minRating, isFeatured, inStock, sort } = req.query as any;
 
@@ -41,12 +45,20 @@ class ProductService {
       ? { score: { $meta: 'textScore' } as any }
       : (sortMap[sort as string] ?? { createdAt: -1 });
 
-    return productRepository.findForStorefront({ filter, pagination, sort: sortObj });
+    const result = await productRepository.findForStorefront({ filter, pagination, sort: sortObj });
+    await valkeyClient.setex(cacheKey, 3600, JSON.stringify(result));
+    return result;
   }
 
   async adminListProducts(req: Request) {
+    const cacheKey = `inventory:all:${req.originalUrl || 'default'}`;
+    const cachedData = await valkeyClient.get(cacheKey);
+    if (cachedData) return JSON.parse(cachedData);
+
     const pagination = getPaginationOptions(req);
-    return productRepository.findAll({ filter: {}, pagination, sort: { createdAt: -1 } });
+    const result = await productRepository.findAll({ filter: {}, pagination, sort: { createdAt: -1 } });
+    await valkeyClient.setex(cacheKey, 3600, JSON.stringify(result));
+    return result;
   }
 
   async getProductBySlug(slug: string) {
@@ -62,13 +74,25 @@ class ProductService {
   }
 
   async getProductById(id: string) {
+    const cacheKey = `product:${id}`;
+    const cachedData = await valkeyClient.get(cacheKey);
+    if (cachedData) return JSON.parse(cachedData);
+
     const product = await productRepository.findById(id);
     if (!product) throw ApiError.notFound('Product not found');
+
+    await valkeyClient.setex(cacheKey, 3600, JSON.stringify(product));
     return product;
   }
 
   async getFeaturedProducts() {
-    return productRepository.getFeatured(12);
+    const cacheKey = `featured-products`;
+    const cachedData = await valkeyClient.get(cacheKey);
+    if (cachedData) return JSON.parse(cachedData);
+
+    const result = await productRepository.getFeatured(12);
+    await valkeyClient.setex(cacheKey, 3600, JSON.stringify(result));
+    return result;
   }
 
   async createProduct(data: CreateProductInput) {

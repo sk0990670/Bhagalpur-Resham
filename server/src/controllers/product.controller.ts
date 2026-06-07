@@ -5,31 +5,37 @@ import { ApiResponse } from '../utils/ApiResponse';
 
 class ProductController {
   listProducts = asyncHandler(async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 's-maxage=0, no-store, no-cache, must-revalidate, proxy-revalidate');
     const result = await productService.listProducts(req);
     res.json(ApiResponse.ok('Products fetched', result.data, result.meta));
   });
 
   listAllProductsForAdmin = asyncHandler(async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 's-maxage=0, no-store, no-cache, must-revalidate, proxy-revalidate');
     const result = await productService.adminListProducts(req);
     res.json(ApiResponse.ok('All products fetched', result.data, result.meta));
   });
 
   getFeatured = asyncHandler(async (_req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 's-maxage=0, no-store, no-cache, must-revalidate, proxy-revalidate');
     const products = await productService.getFeaturedProducts();
     res.json(ApiResponse.ok('Featured products fetched', products));
   });
 
   getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 's-maxage=0, no-store, no-cache, must-revalidate, proxy-revalidate');
     const product = await productService.getProductBySlug(req.params.slug as string);
     res.json(ApiResponse.ok('Product fetched', product));
   });
 
   getProductBySku = asyncHandler(async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 's-maxage=0, no-store, no-cache, must-revalidate, proxy-revalidate');
     const product = await productService.getProductBySku(req.params.sku as string);
     res.json(ApiResponse.ok('Product fetched', product));
   });
 
   getProductById = asyncHandler(async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 's-maxage=0, no-store, no-cache, must-revalidate, proxy-revalidate');
     const product = await productService.getProductById(req.params.id as string);
     res.json(ApiResponse.ok('Product fetched', product));
   });
