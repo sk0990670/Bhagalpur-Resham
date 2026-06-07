@@ -46,7 +46,7 @@ const productBaseSchema = z.object({
   tags: z.array(z.string()).optional(),
   weaveType: z.enum(WEAVE_TYPES).optional(),
   weight: z.number().positive().optional(),
-  isFeatured: z.boolean().default(false),
+  inStock: z.boolean().default(true),
   isActive: z.boolean().optional(),
   careInstructions: z.string().optional(),
   badge: z.enum(['Normal', 'Authentic Collection', 'New Arrival', 'Best Seller']).optional(),
@@ -121,7 +121,6 @@ export const productQuerySchema = z.object({
   minPrice: z.string().optional(),
   maxPrice: z.string().optional(),
   minRating: z.string().optional(),
-  isFeatured: z.enum(['true', 'false']).optional(),
   inStock: z.enum(['true', 'false']).optional(),
   sort: z.enum(['price_asc', 'price_desc', 'rating_desc', 'newest', 'popular']).optional(),
 });

@@ -30,7 +30,6 @@ import { WEAVE_TYPES, WeaveType } from '../utils/constants';
  *         dimensions: { type: object }
  *         avgRating: { type: number }
  *         numReviews: { type: integer }
- *         isFeatured: { type: boolean }
  *         isActive: { type: boolean }
  *         sku: { type: string }
  */
@@ -60,7 +59,6 @@ export interface IProduct extends Document {
   };
   avgRating: number;
   numReviews: number;
-  isFeatured: boolean;
   isActive: boolean;
   attributes?: Record<string, string>; // flexible: { color, occasion, blouse_piece }
   careInstructions?: string;
@@ -147,7 +145,6 @@ const productSchema = new Schema<IProduct>(
     },
     avgRating: { type: Number, default: 0, min: 0, max: 5 },
     numReviews: { type: Number, default: 0, min: 0 },
-    isFeatured: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     attributes: { type: Map, of: String },
     careInstructions: { type: String },
@@ -180,7 +177,7 @@ productSchema.virtual('discountPercent').get(function () {
 // Storefront listing: active products sorted by rating, price
 productSchema.index({ isActive: 1, avgRating: -1 });
 // Featured carousel
-productSchema.index({ isFeatured: 1, isActive: 1 });
+productSchema.index({ isActive: 1 });
 // Admin stock management
 productSchema.index({ stock: 1, isActive: 1 });
 // Price range filter

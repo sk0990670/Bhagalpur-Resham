@@ -37,13 +37,6 @@ export class ProductRepository extends BaseRepository<IProduct> {
     ).exec();
   }
 
-
-
-  async getFeatured(limit = 10) {
-    return Product.find({ isFeatured: true, isActive: true, stock: { $gt: 0 } })
-      .limit(limit)
-      .exec();
-  }
 }
 
 export const productRepository = new ProductRepository();

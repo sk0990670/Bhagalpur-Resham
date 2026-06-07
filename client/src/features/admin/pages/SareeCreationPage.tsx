@@ -82,7 +82,6 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
         description: '',
         weaveType: 'Pure Tussar Silk Weave',
         weight: '',
-        isFeatured: false,
         gstPercent: '5',
         careInstructions: '',
         badge: 'Normal',
@@ -113,7 +112,6 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                             description: p.description || '',
                             weaveType: p.weaveType || 'Pure Tussar Silk Weave',
                             weight: p.weight?.toString() ?? '',
-                            isFeatured: p.isFeatured ?? false,
                             gstPercent: p.gstPercent?.toString() ?? '5',
                             careInstructions: p.careInstructions || '',
                             badge: p.badge || 'Normal',
@@ -242,7 +240,6 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                 description: formData.description,
                 weaveType: formData.weaveType,
                 weight: formData.weight ? Number(formData.weight) : undefined,
-                isFeatured: formData.isFeatured,
                 isActive: formData.status !== 'Draft',
                 gstPercent: Number(formData.gstPercent),
                 attributes: {
@@ -404,10 +401,6 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">GST Percent</label>
                                             <input name="gstPercent" value={formData.gstPercent} onChange={handleChange} min="0" max="28" className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="e.g. 5" type="number"/>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <input name="isFeatured" checked={formData.isFeatured} onChange={handleChange} className="w-5 h-5 text-primary border-outline-variant focus:ring-primary focus:ring-2" type="checkbox"/>
-                                            <label className="font-label-caps text-label-caps text-primary">Feature on Homepage</label>
                                         </div>
                                         <div className="relative">
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">Status</label>

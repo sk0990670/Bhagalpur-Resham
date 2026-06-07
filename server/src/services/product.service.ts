@@ -15,7 +15,7 @@ class ProductService {
     if (cachedData) return JSON.parse(cachedData);
 
     const pagination = getPaginationOptions(req);
-    const { search, weaveType, color, occasion, minPrice, maxPrice, minRating, isFeatured, inStock, sort } = req.query as any;
+    const { search, weaveType, color, occasion, minPrice, maxPrice, minRating, inStock, sort } = req.query as any;
 
     const filter: Record<string, unknown> = {};
     
@@ -23,7 +23,6 @@ class ProductService {
     if (weaveType) filter.weaveType = { $in: weaveType.split(',') };
     if (color) filter['attributes.color'] = { $in: color.split(',') };
     if (occasion) filter['attributes.occasion'] = { $in: occasion.split(',') };
-    if (isFeatured === 'true') filter.isFeatured = true;
     if (inStock === 'true') filter.stock = { $gt: 0 };
     if (minRating) filter.avgRating = { $gte: Number(minRating) };
 
@@ -85,16 +84,6 @@ class ProductService {
     return product;
   }
 
-  async getFeaturedProducts() {
-    const cacheKey = `featured-products`;
-    const cachedData = await valkeyClient.get(cacheKey);
-    if (cachedData) return JSON.parse(cachedData);
-
-    const result = await productRepository.getFeatured(12);
-    await valkeyClient.setex(cacheKey, 3600, JSON.stringify(result));
-    return result;
-  }
-
   async createProduct(data: CreateProductInput) {
     const slug = slugify(data.name, { lower: true, strict: true });
     const exists = await productRepository.exists({ slug });
@@ -145,7 +134,7 @@ class ProductService {
     // Clear Valkey cache
     const keys = await valkeyClient.keys('*');
     for (const key of keys) {
-      if (key.includes('product') || key.includes('inventory') || key.includes('featured') || key.includes('category')) {
+      if (key.includes('product') || key.includes('inventory') || key.includes('category')) {
         await valkeyClient.del(key);
       }
     }

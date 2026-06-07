@@ -36,9 +36,6 @@ import { createProductSchema, updateProductSchema, productQuerySchema } from '..
  *         name: minRating
  *         schema: { type: number, minimum: 1, maximum: 5 }
  *       - in: query
- *         name: isFeatured
- *         schema: { type: boolean }
- *       - in: query
  *         name: inStock
  *         schema: { type: boolean }
  *       - in: query
@@ -52,7 +49,6 @@ const router = Router();
 
 // Public routes
 router.get('/', validate(productQuerySchema, 'query'), productController.listProducts);
-router.get('/featured', productController.getFeatured);
 router.get('/slug/:slug', productController.getProductBySlug);
 router.get('/sku/:sku', productController.getProductBySku);
 
