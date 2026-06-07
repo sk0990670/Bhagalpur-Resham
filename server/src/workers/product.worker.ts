@@ -27,7 +27,7 @@ export const productWorker = new Worker<any>(
       const { productData, tempImages } = job.data as ProcessProductJob;
 
       // 1. Fetch temp images from Valkey and upload to Cloudinary
-      const images: Record<string, { url: string; publicId: string }> = {};
+      const images: Record<string, string> = {};
       const prefix = productData.sku.split('-')[0];
       const folderPath = `bhagalpur-resham/products/${prefix}/${productData.sku}`;
       const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
@@ -63,7 +63,7 @@ export const productWorker = new Worker<any>(
           uploadStream.end(buffer);
         });
 
-        images[shotType] = { url: result.secure_url, publicId: PUBLIC_ID_MAP[shotType] };
+        images[shotType] = result.secure_url;
         await valkeyClient.del(`temp_image:${tempId}`);
       }
 
@@ -92,7 +92,7 @@ export const productWorker = new Worker<any>(
       console.log(`[Worker] Processing product update job ${job.id}...`);
       const { productId, productSku, productData, imageUpdates, existingImages } = job.data as UpdateProductJob;
 
-      const finalImages: Record<string, any> = { ...existingImages };
+      const finalImages: Record<string, string> = { ...existingImages };
       const prefix = productSku.split('-')[0];
       const folderPath = `bhagalpur-resham/products/${prefix}/${productSku}`;
       const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
@@ -131,7 +131,7 @@ export const productWorker = new Worker<any>(
             uploadStream.end(buffer);
           });
 
-          finalImages[update.shotType] = { url: result.secure_url, publicId: PUBLIC_ID_MAP[update.shotType] };
+          finalImages[update.shotType] = result.secure_url;
           await valkeyClient.del(`temp_image:${tempId}`);
         }
       }

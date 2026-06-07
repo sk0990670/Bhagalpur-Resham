@@ -3,8 +3,7 @@ export const getProductImage = (product: any, type: 'fullBody' | 'closeup' | 'mi
 
   // 1. New schema format
   if (product.images[type]) {
-    const val = product.images[type];
-    return typeof val === 'string' ? val : (val.url || val);
+    return product.images[type];
   }
 
   // 2. Legacy array format mapping
