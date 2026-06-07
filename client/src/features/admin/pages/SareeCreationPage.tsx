@@ -107,14 +107,14 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                         setFormData({
                             name: p.name || '',
                             sku: p.sku || '',
-                            stock: p.stock?.toString() || '0',
-                            price: p.price?.toString() || '',
-                            discountPrice: p.discountPrice?.toString() || '',
+                            stock: p.stock?.toString() ?? '0',
+                            price: p.price?.toString() ?? '',
+                            discountPrice: p.discountPrice?.toString() ?? '',
                             description: p.description || '',
                             weaveType: p.weaveType || 'Pure Tussar Silk Weave',
-                            weight: p.weight?.toString() || '',
-                            isFeatured: p.isFeatured || false,
-                            gstPercent: p.gstPercent?.toString() || '5',
+                            weight: p.weight?.toString() ?? '',
+                            isFeatured: p.isFeatured ?? false,
+                            gstPercent: p.gstPercent?.toString() ?? '5',
                             careInstructions: p.careInstructions || '',
                             badge: p.badge || 'Normal',
                             primaryColor: p.attributes?.color || '',
@@ -131,16 +131,17 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                             const closeupUrl = getProductImage(p, 'closeup');
                             const microUrl = getProductImage(p, 'micro');
 
-                            if (fullBodyUrl) {
-                                newImages[0].url = fullBodyUrl;
+                            const v = Date.now();
+                            if (fullBodyUrl && !fullBodyUrl.includes('placeholder')) {
+                                newImages[0].url = `${fullBodyUrl}?v=${v}`;
                                 newImages[0].tempId = 'existing';
                             }
-                            if (closeupUrl) {
-                                newImages[1].url = closeupUrl;
+                            if (closeupUrl && !closeupUrl.includes('placeholder')) {
+                                newImages[1].url = `${closeupUrl}?v=${v}`;
                                 newImages[1].tempId = 'existing';
                             }
-                            if (microUrl) {
-                                newImages[2].url = microUrl;
+                            if (microUrl && !microUrl.includes('placeholder')) {
+                                newImages[2].url = `${microUrl}?v=${v}`;
                                 newImages[2].tempId = 'existing';
                             }
                             setImages(newImages);
@@ -167,10 +168,12 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Set uploading state
-        const newImages = [...images];
-        newImages[index].isUploading = true;
-        setImages(newImages);
+        // Set uploading state with functional update
+        setImages(prev => {
+            const newImages = [...prev];
+            newImages[index].isUploading = true;
+            return newImages;
+        });
         setError('');
 
         const uploadData = new FormData();
@@ -181,18 +184,23 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             if (response.data?.success) {
-                const updatedImages = [...images];
                 const { tempId } = response.data.data;
-                updatedImages[index].tempId = tempId;
-                // Create preview URL locally for robust display
-                updatedImages[index].url = URL.createObjectURL(file);
-                updatedImages[index].isUploading = false;
-                setImages(updatedImages);
+                const localUrl = URL.createObjectURL(file);
+                
+                setImages(prev => {
+                    const updatedImages = [...prev];
+                    updatedImages[index].tempId = tempId;
+                    updatedImages[index].url = localUrl;
+                    updatedImages[index].isUploading = false;
+                    return updatedImages;
+                });
             }
         } catch (err) {
-            const failedImages = [...images];
-            failedImages[index].isUploading = false;
-            setImages(failedImages);
+            setImages(prev => {
+                const failedImages = [...prev];
+                failedImages[index].isUploading = false;
+                return failedImages;
+            });
             setError('Failed to upload image. Please check the file size and try again.');
         }
     };

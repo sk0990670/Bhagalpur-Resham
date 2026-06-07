@@ -27,7 +27,7 @@ export const productWorker = new Worker<any>(
       const { productData, tempImages } = job.data as ProcessProductJob;
 
       // 1. Fetch temp images from Valkey and upload to Cloudinary
-      const images: Record<string, string> = {};
+      const images: Record<string, { url: string; publicId: string }> = {};
       const prefix = productData.sku.split('-')[0];
       const folderPath = `bhagalpur-resham/products/${prefix}/${productData.sku}`;
       const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
@@ -63,7 +63,7 @@ export const productWorker = new Worker<any>(
           uploadStream.end(buffer);
         });
 
-        images[shotType] = result.secure_url;
+        images[shotType] = { url: result.secure_url, publicId: PUBLIC_ID_MAP[shotType] };
         await valkeyClient.del(`temp_image:${tempId}`);
       }
 
@@ -79,11 +79,20 @@ export const productWorker = new Worker<any>(
 
       console.log(`[Worker] Successfully processed product job ${job.id}!`);
       
+      // Clear Valkey cache
+      const keys = await valkeyClient.keys('*');
+      for (const key of keys) {
+        if (key.includes('product') || key.includes('inventory') || key.includes('featured') || key.includes('category')) {
+          await valkeyClient.del(key);
+        }
+      }
+      console.log(`[Worker] Cache cleared for ${job.id}`);
+      
     } else if (job.name === 'update-product') {
       console.log(`[Worker] Processing product update job ${job.id}...`);
       const { productId, productSku, productData, imageUpdates, existingImages } = job.data as UpdateProductJob;
 
-      const finalImages: Record<string, string> = { ...existingImages };
+      const finalImages: Record<string, any> = { ...existingImages };
       const prefix = productSku.split('-')[0];
       const folderPath = `bhagalpur-resham/products/${prefix}/${productSku}`;
       const PUBLIC_ID_MAP: Record<string, string> = { fullBody: 'full-body', closeup: 'closeup', micro: 'micro' };
@@ -122,7 +131,7 @@ export const productWorker = new Worker<any>(
             uploadStream.end(buffer);
           });
 
-          finalImages[update.shotType] = result.secure_url;
+          finalImages[update.shotType] = { url: result.secure_url, publicId: PUBLIC_ID_MAP[update.shotType] };
           await valkeyClient.del(`temp_image:${tempId}`);
         }
       }
@@ -149,6 +158,15 @@ export const productWorker = new Worker<any>(
       } as any);
 
       console.log(`[Worker] Successfully processed update product job ${job.id}!`);
+
+      // Clear Valkey cache
+      const keys = await valkeyClient.keys('*');
+      for (const key of keys) {
+        if (key.includes('product') || key.includes('inventory') || key.includes('featured') || key.includes('category')) {
+          await valkeyClient.del(key);
+        }
+      }
+      console.log(`[Worker] Cache cleared for ${job.id}`);
     }
   },
   {

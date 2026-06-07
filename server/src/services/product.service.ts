@@ -6,6 +6,7 @@ import { Request } from 'express';
 import type { CreateProductInput, UpdateProductInput } from '../validations/product.validation';
 import { productQueue } from '../queues/product.queue';
 import { cloudinary } from '../config/cloudinary';
+import { valkeyClient } from '../config/valkey';
 
 class ProductService {
   async listProducts(req: Request) {
@@ -115,7 +116,17 @@ class ProductService {
       return { status: 'Processing', message: 'Product update queued. Images are being processed in the background.' };
     }
 
-    return productRepository.updateById(id, data as Record<string, unknown>);
+    const updatedProduct = await productRepository.updateById(id, data as Record<string, unknown>);
+    
+    // Clear Valkey cache
+    const keys = await valkeyClient.keys('*');
+    for (const key of keys) {
+      if (key.includes('product') || key.includes('inventory') || key.includes('featured') || key.includes('category')) {
+        await valkeyClient.del(key);
+      }
+    }
+    
+    return updatedProduct;
   }
 
   async deleteProduct(id: string) {

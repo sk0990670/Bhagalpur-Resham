@@ -35,10 +35,15 @@ import { WEAVE_TYPES, WeaveType } from '../utils/constants';
  *         sku: { type: string }
  */
 
+export interface IProductImageDetails {
+  url: string;
+  publicId: string;
+}
+
 export interface IProductImages {
-  fullBody: string;
-  closeup?: string;
-  micro?: string;
+  fullBody: IProductImageDetails | string;
+  closeup?: IProductImageDetails | string;
+  micro?: IProductImageDetails | string;
 }
 
 export interface IProduct extends Document {
@@ -74,11 +79,19 @@ export interface IProduct extends Document {
   effectivePrice?: number;
 }
 
+const imageDetailsSchema = new Schema(
+  {
+    url: { type: String, required: true },
+    publicId: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const productImagesSchema = new Schema<IProductImages>(
   {
-    fullBody: { type: String, required: [true, 'Full body image is required'] },
-    closeup: { type: String },
-    micro: { type: String },
+    fullBody: { type: Schema.Types.Mixed, required: [true, 'Full body image is required'] },
+    closeup: { type: Schema.Types.Mixed },
+    micro: { type: Schema.Types.Mixed },
   },
   { _id: false }
 );
