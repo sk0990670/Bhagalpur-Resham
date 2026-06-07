@@ -347,6 +347,87 @@ class EmailService {
       logger.error('Failed to send status update email', err);
     }
   }
+
+  async sendAdminInquiryNotification(inquiry: any) {
+    if (!this.transporter) return;
+    
+    const adminEmail = process.env.VITE_CONTACT_EMAIL || 'contact@bhagalpurresham.com';
+    const serverDateTime = new Date(inquiry.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+    
+    const title = 'NEW CUSTOMER INQUIRY';
+    const body = `
+      <div style="background-color: #F8F4EE; border: 1px solid #eaddd7; border-radius: 8px; padding: 25px; margin: 20px 0; text-align: left;">
+        <h3 style="color: #800020; font-family: 'Playfair Display', serif; font-size: 18px; margin-top: 0; margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid #d4af37; padding-bottom: 10px;">Inquiry Details</h3>
+        <p style="font-size: 15px; line-height: 1.6; color: #555555; margin: 8px 0;"><strong>Customer Name:</strong> ${inquiry.fullName}</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #555555; margin: 8px 0;"><strong>Customer Email:</strong> ${inquiry.email}</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #555555; margin: 8px 0;"><strong>Inquiry Type:</strong> ${inquiry.subject}</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #555555; margin: 8px 0;"><strong>Submitted On:</strong> ${serverDateTime}</p>
+      </div>
+      
+      <div style="margin: 25px 0;">
+        <h3 style="color: #800020; font-family: 'Playfair Display', serif; font-size: 16px; margin-top: 0; margin-bottom: 10px; font-weight: 700;">Message:</h3>
+        <div style="background-color: #ffffff; padding: 20px; border-left: 4px solid #d4af37; font-size: 15px; line-height: 1.7; color: #444444; font-style: italic;">
+          ${inquiry.message.replace(/\n/g, '<br/>')}
+        </div>
+      </div>
+      
+      <div style="margin-top: 40px; text-align: center;">
+        <a href="mailto:${inquiry.email}" style="display: inline-block; background-color: #800020; color: #ffffff; text-decoration: none; padding: 14px 28px; font-weight: 600; border-radius: 4px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Reply to Customer</a>
+      </div>
+    `;
+
+    const htmlContent = this.getBaseTemplate(title, body, '');
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: '"Bhagalpur Resham System" <system@bhagalpurresham.com>',
+        to: adminEmail,
+        subject: `🔔 New Inquiry Received - Bhagalpur Resham`,
+        html: htmlContent,
+      });
+      logger.info(`Admin Inquiry Notification sent: ${info.messageId} | Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    } catch (err) {
+      logger.error('Failed to send admin inquiry notification', err);
+    }
+  }
+
+  async sendCustomerAutoReply(inquiry: any) {
+    if (!this.transporter) return;
+    
+    const serverDateTime = new Date(inquiry.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+    
+    const title = 'Inquiry Received';
+    const body = `
+      <p style="font-size: 16px; line-height: 1.6; color: #333333;">Dear ${inquiry.fullName},</p>
+      <p style="font-size: 16px; line-height: 1.6; color: #333333;">Namaste.</p>
+      <p style="font-size: 16px; line-height: 1.6; color: #333333;">Thank you for reaching out to Bhagalpur Resham. Your inquiry has been received successfully and our team will review it shortly.</p>
+      
+      <div style="background-color: #F8F4EE; border: 1px solid #eaddd7; border-radius: 8px; padding: 25px; margin: 25px 0; text-align: left;">
+        <h3 style="color: #800020; font-family: 'Playfair Display', serif; font-size: 16px; margin-top: 0; margin-bottom: 10px; font-weight: 700; border-bottom: 1px solid #d4af37; padding-bottom: 8px;">Inquiry Details</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: #555555; margin: 8px 0;"><strong>Subject:</strong> ${inquiry.subject}</p>
+        <p style="font-size: 14px; line-height: 1.6; color: #555555; margin: 8px 0;"><strong>Submitted On:</strong> ${serverDateTime}</p>
+        <p style="font-size: 14px; line-height: 1.6; color: #555555; margin: 8px 0;"><strong>Reference ID:</strong> ${inquiry._id}</p>
+      </div>
+
+      <p style="font-size: 16px; line-height: 1.6; color: #333333;">We generally respond within 24 business hours. Until then, we invite you to continue exploring our heritage collections.</p>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-top: 30px;">Warm Regards,<br/><strong>Bhagalpur Resham Team</strong></p>
+    `;
+
+    const htmlContent = this.getBaseTemplate(title, body, '');
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: '"Bhagalpur Resham" <contact@bhagalpurresham.com>',
+        to: inquiry.email,
+        subject: `We Have Received Your Inquiry | Bhagalpur Resham`,
+        html: htmlContent,
+      });
+      logger.info(`Customer Auto-Reply Email sent: ${info.messageId} | Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    } catch (err) {
+      logger.error('Failed to send customer auto-reply email', err);
+    }
+  }
 }
 
 export const emailService = new EmailService();

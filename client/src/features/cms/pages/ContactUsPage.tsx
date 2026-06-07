@@ -20,7 +20,12 @@ const ContactUs = () => {
     e.preventDefault();
     setStatus('loading');
     try {
-      await api.post('/contact', formData);
+      await api.post('/contact', {
+        fullName: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message
+      });
       setStatus('success');
       setFormData({ name: '', email: '', subject: 'Bespoke Commission', message: '' });
       setTimeout(() => setStatus('idle'), 5000);
@@ -120,7 +125,7 @@ const ContactUs = () => {
                 <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-center p-6 border border-secondary">
                   <span className="material-symbols-outlined text-secondary text-5xl mb-4" style={{ fontVariationSettings: "'FILL' 0" }}>check_circle</span>
                   <h3 className="font-story-serif text-primary text-2xl mb-2">Inquiry Received</h3>
-                  <p className="font-body-md text-on-surface-variant">Thank you. Our artisans will review your request and reach out shortly.</p>
+                  <p className="font-body-md text-on-surface-variant">Thank you for contacting Bhagalpur Resham. Your inquiry has been received successfully. A confirmation email has been sent to your inbox.</p>
                 </div>
               )}
               {status === 'error' && (

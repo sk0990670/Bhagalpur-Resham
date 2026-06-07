@@ -5,6 +5,7 @@ import productRouter from './product.routes';
 import { categoryRouter, cartRouter, wishlistRouter, orderRouter, reviewRouter, couponRouter, cmsRouter, bannerRouter, paymentRouter, analyticsRouter, invoiceRouter, artisanRouter } from './all.routes';
 import creditRouter from './credit.routes';
 import notificationRouter from './notification.routes';
+import contactRouter from './contact.routes';
 import mongoose from 'mongoose';
 
 /**
@@ -61,14 +62,5 @@ router.use('/artisans', artisanRouter);
 router.use('/upload', uploadRouter);
 router.use('/credits', creditRouter);
 router.use('/notifications', notificationRouter);
-
-// ── Contact Inquiry (Mock) ────────────────────────────────────
-router.post('/contact', (req: Request, res: Response) => {
-  console.log('Received contact inquiry:', req.body);
-  res.status(200).json({ 
-    success: true, 
-    message: 'We have received your inquiry and will get back to you shortly.' 
-  });
-});
-
+router.use('/contact', contactRouter);
 export default router;

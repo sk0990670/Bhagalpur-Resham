@@ -57,6 +57,7 @@ import ReviewModerationPage from '../features/admin/pages/ReviewModerationPage';
 import AnalyticsPage from '../features/admin/pages/AnalyticsPage';
 import ContentManagementPage from '../features/admin/pages/ContentManagementPage';
 import ArtisanNetworkPage from '../features/admin/pages/ArtisanNetworkPage';
+import CustomerInquiriesPage from '../features/admin/pages/CustomerInquiriesPage';
 
 const AppRoutes = () => {
   return (
@@ -117,6 +118,7 @@ const AppRoutes = () => {
         <Route path="/admin/analytics" element={<AnalyticsPage />} />
         <Route path="/admin/content" element={<ContentManagementPage />} />
         <Route path="/admin/artisans" element={<ArtisanNetworkPage />} />
+        <Route path="/admin/inquiries" element={<CustomerInquiriesPage />} />
       </Route>
     </Routes>
   );

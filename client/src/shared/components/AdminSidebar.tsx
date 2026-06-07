@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/admin/orders',      icon: 'shopping_cart', label: 'Orders'         },
   { to: '/admin/artisans',    icon: 'groups',       label: 'Artisan Network' },
   { to: '/admin/analytics',   icon: 'monitoring',   label: 'Analytics'       },
+  { to: '/admin/inquiries',   icon: 'contact_mail', label: 'Inquiries'       },
   { to: '/admin/customers',   icon: 'person',       label: 'Customers'       },
   { to: '/admin/coupons',     icon: 'local_offer',  label: 'Coupons'         },
   { to: '/admin/reviews',     icon: 'reviews',      label: 'Reviews'         },
