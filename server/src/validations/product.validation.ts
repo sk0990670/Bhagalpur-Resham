@@ -52,17 +52,38 @@ const productBaseSchema = z.object({
   badge: z.enum(['Normal', 'Authentic Collection', 'New Arrival', 'Best Seller']).optional(),
   gstPercent: z.number().min(0).max(28).optional(),
   attributes: z.object({
-    color: z.enum(COLOR_TYPES).optional(),
-    occasion: z.enum(['Wedding', 'Festive', 'Casual']).optional(),
-  }).catchall(z.string()).optional(),
-});
+    color: z.enum(COLOR_TYPES),
+    occasion: z.enum(['Wedding', 'Festive', 'Casual']),
+  }).catchall(z.string()),
+}).refine(
+  (data) => {
+    if (data.discountPrice !== undefined && data.price !== undefined) {
+      return data.discountPrice < data.price;
+    }
+    return true;
+  },
+  {
+    message: 'Discount price must be less than the regular price',
+    path: ['discountPrice'],
+  }
+);
 
-// Create schema: enforces SKU prefix rule
+// Create schema: enforces SKU prefix rule and requires fullBody image
 export const createProductSchema = productBaseSchema.refine(
   validateSkuPrefix,
   {
     message: 'SKU prefix must match the weave type (e.g. TSS- for Pure Tussar Silk Weave)',
     path: ['sku'],
+  }
+).refine(
+  (data) => {
+    const hasFullBodyTemp = data.tempImages?.some(img => img.shotType === 'fullBody');
+    const hasFullBodyExisting = !!data.images?.fullBody;
+    return hasFullBodyTemp || hasFullBodyExisting;
+  },
+  {
+    message: 'Full body image is required to create a product',
+    path: ['tempImages'],
   }
 );
 

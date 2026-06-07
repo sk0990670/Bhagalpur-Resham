@@ -87,7 +87,7 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
         careInstructions: '',
         badge: 'Normal',
         primaryColor: '',
-        occasion: 'Festive',
+        occasion: '',
         status: 'Active',
     });
 
@@ -118,7 +118,7 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                             careInstructions: p.careInstructions || '',
                             badge: p.badge || 'Normal',
                             primaryColor: p.attributes?.color || '',
-                            occasion: p.attributes?.occasion || 'Festive',
+                            occasion: p.attributes?.occasion || '',
                             status: p.isActive ? (p.stock === 0 ? 'Out of Stock' : 'Active') : 'Draft',
                         });
                         if (p.images) {
@@ -201,8 +201,19 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
         e.preventDefault();
         setError('');
 
-        if (!formData.name || !formData.sku || !formData.stock || !formData.price || !formData.description) {
-            setError('Please fill in all required essence and craft details.');
+        if (!formData.name || !formData.sku || !formData.stock || !formData.price || !formData.description || !formData.primaryColor || !formData.occasion) {
+            setError('Please fill in all required essence and craft details, including color and occasion.');
+            return;
+        }
+
+        const skuParts = formData.sku.split('-');
+        if (skuParts.length < 2 || !skuParts[1].trim()) {
+            setError('Please provide a valid SKU suffix.');
+            return;
+        }
+
+        if (formData.discountPrice && Number(formData.discountPrice) >= Number(formData.price)) {
+            setError('Discount price must be less than the regular price.');
             return;
         }
 
@@ -326,15 +337,15 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                                         </div>
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">Stock Quantity *</label>
-                                            <input name="stock" value={formData.stock} onChange={handleChange} required className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="0" type="number"/>
+                                            <input name="stock" value={formData.stock} onChange={handleChange} required min="0" className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="0" type="number"/>
                                         </div>
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">Price (INR) *</label>
-                                            <input name="price" value={formData.price} onChange={handleChange} required className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="₹" type="number"/>
+                                            <input name="price" value={formData.price} onChange={handleChange} required min="1" className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="₹" type="number"/>
                                         </div>
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">Discount Price (Optional)</label>
-                                            <input name="discountPrice" value={formData.discountPrice} onChange={handleChange} className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="₹" type="number"/>
+                                            <input name="discountPrice" value={formData.discountPrice} onChange={handleChange} min="1" className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="₹" type="number"/>
                                         </div>
                                         <div className="relative">
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">Weave Type</label>
@@ -380,11 +391,11 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                                         </div>
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">Weight (grams)</label>
-                                            <input name="weight" value={formData.weight} onChange={handleChange} className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="e.g. 650" type="number"/>
+                                            <input name="weight" value={formData.weight} onChange={handleChange} min="0" className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="e.g. 650" type="number"/>
                                         </div>
                                         <div>
                                             <label className="block font-label-caps text-label-caps text-primary mb-1">GST Percent</label>
-                                            <input name="gstPercent" value={formData.gstPercent} onChange={handleChange} className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="e.g. 5" type="number"/>
+                                            <input name="gstPercent" value={formData.gstPercent} onChange={handleChange} min="0" max="28" className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="e.g. 5" type="number"/>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <input name="isFeatured" checked={formData.isFeatured} onChange={handleChange} className="w-5 h-5 text-primary border-outline-variant focus:ring-primary focus:ring-2" type="checkbox"/>
@@ -504,7 +515,7 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                                                 )}
                                             </div>
                                             <div className="relative">
-                                                <label className="block font-label-caps text-label-caps text-primary mb-1">Primary Color</label>
+                                                <label className="block font-label-caps text-label-caps text-primary mb-1">Primary Color *</label>
                                                 <div 
                                                     className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0 cursor-pointer flex items-center justify-between"
                                                     onClick={() => setIsColorDropdownOpen(!isColorDropdownOpen)}
@@ -547,7 +558,7 @@ const generateSKU = (weave: string = 'Pure Tussar Silk Weave') => {
                                                 )}
                                             </div>
                                             <div className="relative">
-                                                <label className="block font-label-caps text-label-caps text-primary mb-1">Occasion</label>
+                                                <label className="block font-label-caps text-label-caps text-primary mb-1">Occasion *</label>
                                                 <div 
                                                     className="w-full custom-input font-body-lg text-body-lg text-on-surface focus:ring-0 cursor-pointer flex items-center justify-between"
                                                     onClick={() => setIsOccasionDropdownOpen(!isOccasionDropdownOpen)}
