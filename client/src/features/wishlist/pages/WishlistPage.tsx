@@ -56,8 +56,8 @@ const WishlistPage = () => {
   }, [isAuthenticated]);
 
   const handleRemove = async (product: any) => {
-    await toggleItem(product._id, product.name);
-    setWishlistProducts((prev) => prev.filter((p) => p._id !== product._id));
+    await toggleItem(product._id || product.id, product.name);
+    setWishlistProducts((prev) => prev.filter((p) => (p._id || p.id) !== (product._id || product.id)));
   };
 
   const handleMoveToBag = async (product: any) => {
@@ -65,10 +65,10 @@ const WishlistPage = () => {
       showToast('Product is out of stock', 'error');
       return;
     }
-    const success = await addToCart(product._id, 1, product.name);
+    const success = await addToCart(product._id || product.id, 1, product.name);
     if (success) {
-      await toggleItem(product._id, product.name);
-      setWishlistProducts((prev) => prev.filter((p) => p._id !== product._id));
+      await toggleItem(product._id || product.id, product.name);
+      setWishlistProducts((prev) => prev.filter((p) => (p._id || p.id) !== (product._id || product.id)));
     }
   };
 
@@ -116,7 +116,7 @@ const WishlistPage = () => {
             {wishlistProducts.map((product) => {
               const primaryImage = getProductImage(product, 'fullBody');
               return (
-                <div key={product._id} className="bg-surface-container-lowest masterpiece-card ambient-shadow flex flex-col group transition-transform duration-300 hover:-translate-y-1">
+                <div key={product._id || product.id} className="bg-surface-container-lowest masterpiece-card ambient-shadow flex flex-col group transition-transform duration-300 hover:-translate-y-1">
                   <div className="relative p-4 flex-grow">
                     {/* Image */}
                     <Link to={`/product/${product.sku}`} className="block">

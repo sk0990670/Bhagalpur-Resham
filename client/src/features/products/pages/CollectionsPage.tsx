@@ -194,7 +194,7 @@ const Collections = () => {
               const primaryImage = getProductImage(product, 'fullBody');
               
               return (
-                <Link key={product._id} to={`/product/${product.sku}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">
+                <Link key={product._id || product.id} to={`/product/${product.sku}`} className="block group relative border-ornamental ambient-shadow transition-transform duration-500 hover:-translate-y-1 bg-surface-container-lowest p-3">
                   <div className="relative overflow-hidden aspect-[4/5] mithila-border p-1 bg-surface-container-low mb-3">
                     {primaryImage ? (
                       <img 
@@ -230,17 +230,17 @@ const Collections = () => {
                     <div className="flex justify-between items-center border-t border-outline-variant/30 pt-2 mt-2">
                       <span className="font-body-lg text-body-lg font-semibold text-on-surface text-base">₹ {product.price?.toLocaleString()}</span>
                       <button
-                        aria-label={isInWishlist(product._id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                        aria-label={isInWishlist(product._id || product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                         className="cursor-pointer transition-transform hover:scale-110 active:scale-125 focus:outline-none"
-                        onClick={(e) => { e.preventDefault(); toggleItem(product._id, product.name); }}
+                        onClick={(e) => { e.preventDefault(); toggleItem(product._id || product.id, product.name); }}
                         style={{ lineHeight: 1 }}
                       >
                         <span
                           className="material-symbols-outlined transition-all duration-200"
                           style={{
                             fontSize: '22px',
-                            fontVariationSettings: isInWishlist(product._id) ? "'FILL' 1" : "'FILL' 0",
-                            color: isInWishlist(product._id) ? '#C41E3A' : '#6B7280',
+                            fontVariationSettings: isInWishlist(product._id || product.id) ? "'FILL' 1" : "'FILL' 0",
+                            color: isInWishlist(product._id || product.id) ? '#C41E3A' : '#6B7280',
                           }}
                         >
                           favorite

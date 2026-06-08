@@ -65,7 +65,7 @@ const ProductDetail = () => {
     );
   }
 
-  const isWishlisted = product ? isInWishlist(product._id) : false;
+  const isWishlisted = product ? isInWishlist(product._id || product.id) : false;
   const primaryImage = getProductImage(product, 'fullBody');
   const allImages = [
     getProductImage(product, 'fullBody'),
@@ -78,11 +78,11 @@ const ProductDetail = () => {
       navigate('/login');
       return;
     }
-    await addToCart(product._id, 1, product.name);
+    await addToCart(product._id || product.id, 1, product.name);
   };
 
   const handleAddToWishlist = () => {
-    toggleItem(product._id, product.name);
+    toggleItem(product._id || product.id, product.name);
   };
 
   return (
