@@ -91,6 +91,12 @@ const Layout = () => {
           
           {/* Actions */}
           <div className="flex items-center gap-4">
+            {import.meta.env.VITE_SUPPORT_PHONE && (
+              <a href={`tel:${import.meta.env.VITE_SUPPORT_PHONE}`} className="hidden lg:flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors font-label-caps text-sm mr-2">
+                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 0" }}>call</span>
+                <span>+91 {import.meta.env.VITE_SUPPORT_PHONE}</span>
+              </a>
+            )}
             <Link aria-label="Search" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/search">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>search</span>
             </Link>
@@ -189,6 +195,14 @@ const Layout = () => {
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/faq">FAQ</Link></li>
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/privacy">Privacy Policy</Link></li>
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/contact">Contact Us</Link></li>
+              {import.meta.env.VITE_SUPPORT_PHONE && (
+                <li className="pt-2">
+                  <a href={`tel:${import.meta.env.VITE_SUPPORT_PHONE}`} className="flex items-center gap-2 font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-[18px]">call</span>
+                    <span>+91 {import.meta.env.VITE_SUPPORT_PHONE}</span>
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
         </div>
