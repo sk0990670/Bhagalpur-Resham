@@ -91,12 +91,6 @@ const Layout = () => {
           
           {/* Actions */}
           <div className="flex items-center gap-4">
-            {import.meta.env.VITE_SUPPORT_PHONE && (
-              <a href={`tel:${import.meta.env.VITE_SUPPORT_PHONE}`} className="hidden lg:flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors font-label-caps text-sm mr-2">
-                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 0" }}>call</span>
-                <span>+91 {import.meta.env.VITE_SUPPORT_PHONE}</span>
-              </a>
-            )}
             <Link aria-label="Search" className="text-on-surface-variant hover:text-primary transition-colors focus:outline-none cursor-pointer active:scale-95" to="/search">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>search</span>
             </Link>
@@ -161,9 +155,23 @@ const Layout = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-section-gap max-w-container-max mx-auto">
           <div className="col-span-1 md:col-span-2 flex flex-col items-start pr-0 md:pr-12">
             <Link className="font-display-lg text-headline-xl text-primary dark:text-primary-fixed-dim mb-4" to="/">Bhagalpur Resham</Link>
-            <p className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-8 max-w-md">
+            <p className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-6 max-w-md">
               Curating the finest handcrafted silk sarees, merging ancestral weaving traditions with modern elegance.
             </p>
+            <div className="flex flex-col gap-2 mb-8 text-on-surface-variant dark:text-outline-variant font-body-md">
+              {import.meta.env.VITE_SUPPORT_PHONE && (
+                <a href={`tel:${import.meta.env.VITE_SUPPORT_PHONE}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 0" }}>call</span>
+                  {import.meta.env.VITE_SUPPORT_PHONE}
+                </a>
+              )}
+              {import.meta.env.VITE_SUPPORT_EMAIL && (
+                <a href={`mailto:${import.meta.env.VITE_SUPPORT_EMAIL}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 0" }}>mail</span>
+                  {import.meta.env.VITE_SUPPORT_EMAIL}
+                </a>
+              )}
+            </div>
             <form className="w-full max-w-md mb-8">
               <label className="block font-label-caps text-label-caps text-on-surface mb-2" htmlFor="newsletter">JOIN OUR HERITAGE COMMUNITY</label>
               <div className="relative">
@@ -195,14 +203,6 @@ const Layout = () => {
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/faq">FAQ</Link></li>
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/privacy">Privacy Policy</Link></li>
               <li><Link className="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary hover:underline decoration-secondary transition-all focus:outline-none focus:ring-1 focus:ring-secondary" to="/contact">Contact Us</Link></li>
-              {import.meta.env.VITE_SUPPORT_PHONE && (
-                <li className="pt-2">
-                  <a href={`tel:${import.meta.env.VITE_SUPPORT_PHONE}`} className="flex items-center gap-2 font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">call</span>
-                    <span>+91 {import.meta.env.VITE_SUPPORT_PHONE}</span>
-                  </a>
-                </li>
-              )}
             </ul>
           </div>
         </div>
