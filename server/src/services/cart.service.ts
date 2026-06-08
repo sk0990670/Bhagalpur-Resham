@@ -3,6 +3,16 @@ import { productRepository } from '../repositories/product.repository';
 import { ApiError } from '../utils/ApiError';
 
 class CartService {
+  private sanitizeItemsForSave(items: any[]) {
+    return items
+      .filter((i) => i.product) // Remove orphaned items
+      .map((i) => ({
+        product: typeof i.product === 'string' ? i.product : (i.product._id || i.product),
+        qty: i.qty,
+        addedToCartAt: i.addedToCartAt,
+      }));
+  }
+
   private formatCartResponse(cart: any) {
     if (!cart) return null;
     const cartObj = cart.toObject ? cart.toObject({ virtuals: true }) : cart;
@@ -63,7 +73,7 @@ class CartService {
         addedToCartAt: new Date(),
       });
     }
-    await cartRepository.upsertCart(userId, { items } as any);
+    await cartRepository.upsertCart(userId, { items: this.sanitizeItemsForSave(items) } as any);
     return this.getCart(userId);
   }
 
@@ -80,7 +90,7 @@ class CartService {
     if (qty > (item.product as any).stock) throw ApiError.badRequest(`Only ${(item.product as any).stock} units available`);
 
     item.qty = qty;
-    await cartRepository.upsertCart(userId, { items: cart.items } as any);
+    await cartRepository.upsertCart(userId, { items: this.sanitizeItemsForSave(cart.items) } as any);
     return this.getCart(userId);
   }
 
@@ -88,7 +98,7 @@ class CartService {
     const cart = await cartRepository.findByUser(userId);
     if (!cart) throw ApiError.notFound('Cart not found');
     const items = cart.items.filter((i) => i.product.toString() !== productId && (i.product as any)?._id?.toString() !== productId);
-    await cartRepository.upsertCart(userId, { items } as any);
+    await cartRepository.upsertCart(userId, { items: this.sanitizeItemsForSave(items) } as any);
     return this.getCart(userId);
   }
 
