@@ -193,7 +193,7 @@ const Layout = () => {
           </div>
         </div>
         <div className="border-t border-outline-variant/20 px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="font-body-md text-body-md text-on-surface-variant/70 text-sm">© 2024 Bhagalpur Resham. Hand-woven in Bihar, India.</span>
+          <span className="font-body-md text-body-md text-on-surface-variant/70 text-sm">© 2026 Bhagalpur Resham. Hand-woven in Bihar, India.</span>
           <div className="flex gap-4">
             {import.meta.env.VITE_INSTAGRAM_URL && (
               <a aria-label="Instagram" className="text-on-surface-variant/70 hover:text-primary transition-colors flex items-center justify-center" href={import.meta.env.VITE_INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
